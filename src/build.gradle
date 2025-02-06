@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation implementation 'org.postgresql:postgresql:42.6.0'// Versión más reciente de PostgreSQL
+    implementation 'org.openjfx:javafx-controls:20'
+    implementation 'org.openjfx:javafx-fxml:20'
+}
+
+application {
+    mainClass = 'com.example.Main'  // Cambia esto a tu clase principal
+}
+
+javafx {
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['--add-modules', 'javafx.controls,javafx.fxml']
+}

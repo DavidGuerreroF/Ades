@@ -1,0 +1,8 @@
+Reporte de Cuadre de Caja
+Fecha de Inicio: 29/01/2025
+Fecha de Fin: 01/03/2025
+----------------------------------------
+Total Ventas: $188500.0
+----------------------------------------
+Este reporte ha sido generado por el sistema de facturación.
+Software: ADES Software
