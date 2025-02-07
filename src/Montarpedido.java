@@ -18,10 +18,12 @@ public class Montarpedido extends Application {
     private Button btnCrearPedido;
     private Button btnCancelar;
     private TextField valorPedido; // Campo para ingresar el valor en float
-    private ComboBox<String> comboMenuDia; // ComboBox para seleccionar el menú del día
+    private TextField menuDiaField; // Campo para ingresar el menú del día manualmente
     private ComboBox<String> comboDomiciliario; // ComboBox para seleccionar domiciliarios
-    private ObservableList<String> menusDia; // Lista de menús del día
     private ObservableList<String> listaDomiciliarios; // Lista de domiciliarios
+    private Button btnClientes;
+    private Button btnDomiciliarios;
+    private Button btnAgregarMenu;
 
     public static void main(String[] args) {
         launch(args);
@@ -39,16 +41,18 @@ public class Montarpedido extends Application {
         valorPedido = new TextField(); // Campo para valor
         valorPedido.setPromptText("Ingrese el valor del pedido");
 
-        comboMenuDia = new ComboBox<>(); // ComboBox para seleccionar el menú del día
-        menusDia = FXCollections.observableArrayList(); // Lista para almacenar los menús del día
-        cargarMenusDelDia(); // Cargar los menús disponibles
+        menuDiaField = new TextField(); // Campo para ingresar el menú del día manualmente
+        menuDiaField.setPromptText("Ingrese el menú del día");
 
+        btnAgregarMenu = new Button("Agregar Menú"); // Botón para agregar menú del día
         comboDomiciliario = new ComboBox<>(); // ComboBox para seleccionar domiciliarios
         listaDomiciliarios = FXCollections.observableArrayList(); // Lista para almacenar domiciliarios
         cargarDomiciliarios(); // Cargar domiciliarios disponibles
 
         btnCrearPedido = new Button("Crear Pedido");
         btnCancelar = new Button("Cancelar");
+        btnClientes = new Button("Ir a Clientes"); // Botón para ir a Clientes.java
+        btnDomiciliarios = new Button("Ir a Domiciliarios"); // Botón para ir a Domiciliarios.java
 
         // Acción al presionar Enter en el campo de teléfono
         telefonoCliente.setOnKeyPressed(event -> {
@@ -71,13 +75,13 @@ public class Montarpedido extends Application {
         root.add(crearCampo("Dirección", direccionCliente), 0, 4);
         root.add(crearCampo("Fecha del Pedido", fechaPedido), 0, 5);
         root.add(crearCampo("Valor", valorPedido), 0, 6); // Agregar el campo valor
-        root.add(crearCampo("Menú", comboMenuDia), 0, 7); // ComboBox para menú del día
+        root.add(crearCampo("Menú del Día", menuDiaField), 0, 7); // Campo para menú del día
         root.add(crearCampo("Domiciliario", comboDomiciliario), 0, 8); // ComboBox para domiciliarios
 
         // Botones
         HBox botones = new HBox(30);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnCrearPedido, btnCancelar);
+        botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios);
         root.add(botones, 0, 9, 2, 1);
 
         // Estilo de botones
@@ -85,12 +89,22 @@ public class Montarpedido extends Application {
         btnCrearPedido.setPrefWidth(250);
         btnCancelar.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnCancelar.setPrefWidth(250);
+        btnClientes.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnClientes.setPrefWidth(250);
+        btnDomiciliarios.setStyle("-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnDomiciliarios.setPrefWidth(250);
 
         // Acción del botón de "Crear Pedido"
         btnCrearPedido.setOnAction(event -> crearPedido());
 
         // Acción del botón de "Cancelar"
         btnCancelar.setOnAction(event -> cancelarPedido(primaryStage));
+
+        // Acción del botón de "Ir a Clientes"
+        btnClientes.setOnAction(event -> irAClientes(primaryStage));
+
+        // Acción del botón de "Ir a Domiciliarios"
+        btnDomiciliarios.setOnAction(event -> irADomiciliarios(primaryStage));
 
         // Configuración de la escena
         Scene scene = new Scene(root, 1000, 600); // Ajustado para los cambios
@@ -130,20 +144,6 @@ public class Montarpedido extends Application {
         }
     }
 
-    private void cargarMenusDelDia() {
-        try (Connection connection = conexionDB.getConnection()) {
-            String query = "SELECT plato FROM MENU_DIA";
-            PreparedStatement stmt = connection.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                menusDia.add(rs.getString("plato"));
-            }
-            comboMenuDia.setItems(menusDia);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void cargarDomiciliarios() {
         try (Connection connection = conexionDB.getConnection()) {
             String query = "SELECT nombre FROM DOMICILIARIOS";
@@ -162,9 +162,9 @@ public class Montarpedido extends Application {
         try (Connection connection = conexionDB.getConnection()) {
             String telefono = telefonoCliente.getText();
             String nombre = nombreCliente.getText();
-            String apellido = apellidoCliente.getText();
+            String apellido = nombreCliente.getText();
             String direccion = direccionCliente.getText();
-            String fecha = fechaPedido.getValue().toString(); // Esta es la cadena de fecha
+            String fecha = fechaPedido.getValue().toString();
 
             // Obtener valor del pedido
             float valor = 0;
@@ -192,29 +192,19 @@ public class Montarpedido extends Application {
                 return;
             }
 
-            // Obtener el ID del menú del día seleccionado
-            int idMenuDia = obtenerIdMenuDia(comboMenuDia.getValue(), connection);
-            if (idMenuDia == -1) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Debe seleccionar un menú.");
-                alert.show();
-                return;
-            }
-
             java.sql.Date fechaSQL = java.sql.Date.valueOf(fecha);
 
             // Consulta para insertar el pedido
-            String query = "INSERT INTO PEDIDOS (id_cliente, id_domiciliario, id_menu_dia, fecha_pedido, estado, direccion_entrega, telefono_cliente, valor, plato_seleccionado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO PEDIDOS (id_cliente, id_domiciliario, fecha_pedido, estado, direccion_entrega, telefono_cliente, valor, plato_seleccionado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setInt(1, idCliente);
             stmt.setInt(2, idDomiciliario);
-            stmt.setInt(3, idMenuDia);
-            stmt.setDate(4, fechaSQL);
-            stmt.setString(5, "Pendiente");
-            stmt.setString(6, direccion);
-            stmt.setString(7, telefono);
-            stmt.setFloat(8, valor);
-            stmt.setString(9, comboMenuDia.getValue()); // Agregar el plato seleccionado
-
+            stmt.setDate(3, fechaSQL);
+            stmt.setString(4, "Pendiente");
+            stmt.setString(5, direccion);
+            stmt.setString(6, telefono);
+            stmt.setFloat(7, valor);
+            stmt.setString(8, menuDiaField.getText()); // Agregar el plato ingresado
 
             stmt.executeUpdate();
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Pedido creado exitosamente");
@@ -230,17 +220,6 @@ public class Montarpedido extends Application {
         String query = "SELECT id FROM CLIENTES WHERE telefono = ?";
         PreparedStatement stmt = connection.prepareStatement(query);
         stmt.setString(1, telefono);
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getInt("id");
-        }
-        return -1;
-    }
-
-    private int obtenerIdMenuDia(String menuSeleccionado, Connection connection) throws SQLException {
-        String query = "SELECT id FROM MENU_DIA WHERE plato = ?";
-        PreparedStatement stmt = connection.prepareStatement(query);
-        stmt.setString(1, menuSeleccionado);
         ResultSet rs = stmt.executeQuery();
         if (rs.next()) {
             return rs.getInt("id");
@@ -272,6 +251,40 @@ public class Montarpedido extends Application {
         } catch (Exception e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Error al regresar al menú principal: " + e.getMessage());
+            alert.show();
+        }
+    }
+
+    private void irAClientes(Stage stage) {
+        // Cargar la ventana de Clientes (clientes.java)
+        try {
+            // Crear la nueva ventana de clientes
+            clientes clientesApp = new clientes();
+            Stage nuevaVentana = new Stage(); // Nueva ventana para clientes
+            clientesApp.start(nuevaVentana); // Inicializa la ventana de clientes
+
+            // Cerrar la ventana actual
+            stage.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Error al abrir la ventana de clientes: " + e.getMessage());
+            alert.show();
+        }
+    }
+
+    private void irADomiciliarios(Stage stage) {
+        // Cargar la ventana de Domiciliarios (domiciliarios.java)
+        try {
+            // Crear la nueva ventana de domiciliarios
+            domiciliarios domiciliariosApp = new domiciliarios();
+            Stage nuevaVentana = new Stage(); // Nueva ventana para domiciliarios
+            domiciliariosApp.start(nuevaVentana); // Inicializa la ventana de domiciliarios
+
+            // Cerrar la ventana actual
+            stage.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Error al abrir la ventana de domiciliarios: " + e.getMessage());
             alert.show();
         }
     }

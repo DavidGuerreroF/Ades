@@ -21,6 +21,10 @@ public class domiciliarios extends Application {
         this.mainStage = mainStage;
     }
 
+    public domiciliarios() {
+
+    }
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Domiciliario");

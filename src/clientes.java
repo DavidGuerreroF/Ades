@@ -18,6 +18,10 @@ public class clientes extends Application {
         this.mainStage = mainStage;
     }
 
+    public clientes() {
+
+    }
+
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Cliente");
         this.helpLabel = new Label("Por favor, ingrese los datos del cliente.");
