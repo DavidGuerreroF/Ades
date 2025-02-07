@@ -13,11 +13,14 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import java.sql.*;
+import java.util.Properties;
+import javax.mail.*;
+import javax.mail.internet.*;
 
 public class CatalogoPedidos extends Application {
     private TableView<Pedido> tablaPedidos;
     private ObservableList<Pedido> listaPedidos;
-    private Button btnCancelar, btnDespachar, btnVolver;
+    private Button btnCancelar, btnDespachar, btnVolver, btnEnviarEmail;
 
     public static void main(String[] args) {
         launch(args);
@@ -100,9 +103,21 @@ public class CatalogoPedidos extends Application {
         );
         btnVolver.setOnAction(event -> volverAlMenuPrincipal(primaryStage));
 
+        btnEnviarEmail = new Button("Enviar Email");
+        btnEnviarEmail.setStyle(
+                "-fx-background-color: #FFA500; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 10px 20px; " +
+                        "-fx-background-radius: 8px; " +
+                        "-fx-cursor: hand;"
+        );
+        btnEnviarEmail.setOnAction(event -> enviarEmail());
+
         HBox botones = new HBox(20);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnDespachar, btnCancelar, btnVolver);
+        botones.getChildren().addAll(btnDespachar, btnCancelar, btnEnviarEmail, btnVolver);
 
         // Layout principal
         VBox root = new VBox(20, tablaPedidos, botones);
@@ -122,12 +137,11 @@ public class CatalogoPedidos extends Application {
     // Método para cargar los pedidos desde la base de datos
     private void cargarPedidos() {
         try (Connection connection = conexionDB.getConnection()) {
-            // Consulta SQL que une PEDIDOS, CLIENTES, DOMICILIARIOS, y MENU_DIA
-            String query = "SELECT p.id, c.nombre AS cliente, c.telefono, c.direccion, d.nombre AS domiciliario, p.fecha_pedido, p.estado, p.valor, plato_seleccionado " +
+            // Consulta SQL que une PEDIDOS, CLIENTES, DOMICILIARIOS
+            String query = "SELECT p.id, c.nombre AS cliente, c.telefono, c.direccion, d.nombre AS domiciliario, p.fecha_pedido, p.estado, p.valor, p.plato_seleccionado " +
                     "FROM PEDIDOS p " +
                     "JOIN CLIENTES c ON p.id_cliente = c.id " +
-                    "JOIN DOMICILIARIOS d ON p.id_domiciliario = d.id " +
-                    "JOIN MENU_DIA m ON p.id_menu_dia = m.id";
+                    "JOIN DOMICILIARIOS d ON p.id_domiciliario = d.id";
 
             PreparedStatement stmt = connection.prepareStatement(query);
             ResultSet rs = stmt.executeQuery();
@@ -141,7 +155,7 @@ public class CatalogoPedidos extends Application {
                 String fechaPedido = rs.getString("fecha_pedido");
                 String estado = rs.getString("estado");
                 double valor = rs.getDouble("valor");
-                String platoSeleccionado = rs.getString("plato_seleccionado"); // Asumiendo que 'plato1' es el plato seleccionado
+                String platoSeleccionado = rs.getString("plato_seleccionado");
 
                 listaPedidos.add(new Pedido(id, cliente, telefono, direccion, domiciliario, fechaPedido, estado, valor, platoSeleccionado));
             }
@@ -208,6 +222,78 @@ public class CatalogoPedidos extends Application {
         }
     }
 
+    // Método para enviar un email con la información del pedido
+    private void enviarEmail() {
+        Pedido selectedPedido = tablaPedidos.getSelectionModel().getSelectedItem();
+        if (selectedPedido != null) {
+            try (Connection connection = conexionDB.getConnection()) {
+                // Obtener el correo del domiciliario
+                String query = "SELECT email FROM DOMICILIARIOS WHERE nombre = ?";
+                PreparedStatement stmt = connection.prepareStatement(query);
+                stmt.setString(1, selectedPedido.getDomiciliario());
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    String email = rs.getString("email");
+                    String subject = "Información del Pedido No. " + selectedPedido.getId();
+                    String body = "Detalles del pedido:\n" +
+                            "Cliente: " + selectedPedido.getCliente() + "\n" +
+                            "Teléfono: " + selectedPedido.getTelefono() + "\n" +
+                            "Dirección: " + selectedPedido.getDireccion() + "\n" +
+                            "Fecha del Pedido: " + selectedPedido.getFechaPedido() + "\n" +
+                            "Estado: " + selectedPedido.getEstado() + "\n" +
+                            "Valor: $" + selectedPedido.getValor() + "\n" +
+                            "Plato Seleccionado: " + selectedPedido.getPlatoSeleccionado();
+
+                    sendEmail(email, subject, body);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Email enviado exitosamente.");
+                    alert.show();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "No se encontró el email del domiciliario.");
+                    alert.show();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error al enviar el email: " + e.getMessage());
+                alert.show();
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Por favor, seleccione un pedido para enviar el email.");
+            alert.show();
+        }
+    }
+
+    // Método para enviar un email
+    private void sendEmail(String to, String subject, String body) {
+        final String username = "david.guerrero@dydsoftware.com";
+        final String password = "Guerrero*782*";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.zoho.com");
+        props.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            message.setSubject(subject);
+            message.setText(body);
+
+            Transport.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // Método para volver al menú principal (abrir clase Despachos.java)
     private void volverAlMenuPrincipal(Stage primaryStage) {
         primaryStage.hide(); // Cierra la ventana actual
@@ -220,9 +306,6 @@ public class CatalogoPedidos extends Application {
             e.printStackTrace();
         }
     }
-
-
-
 
     // Clase Pedido
     public static class Pedido {

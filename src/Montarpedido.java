@@ -43,6 +43,7 @@ public class Montarpedido extends Application {
 
         menuDiaField = new TextField(); // Campo para ingresar el menú del día manualmente
         menuDiaField.setPromptText("Ingrese el menú del día");
+        menuDiaField.setMinHeight(100); // Aumentar el tamaño del campo de menú del día
 
         btnAgregarMenu = new Button("Agregar Menú"); // Botón para agregar menú del día
         comboDomiciliario = new ComboBox<>(); // ComboBox para seleccionar domiciliarios

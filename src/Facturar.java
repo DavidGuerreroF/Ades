@@ -17,8 +17,8 @@ import java.util.List;
 
 public class Facturar extends Application {
     private Label errorMessage, changeLabel;
-    private ComboBox<String> waiterComboBox, clientComboBox;
-    private TextField lunchCountField, priceField, moneyReceivedField;
+    private ComboBox<String> pedidoComboBox;
+    private TextField lunchCountField, priceField, moneyReceivedField, waiterField, clientField, addressField;
     private DatePicker datePicker;
     private double fixedPrice = 14500.0;
     private Stage facturarStage;
@@ -30,27 +30,19 @@ public class Facturar extends Application {
         Label titleLabel = new Label("A D E S");
         titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0294b5;");
 
-        // ComboBox para domiciliarios
-        waiterComboBox = new ComboBox<>();
-        waiterComboBox.setPromptText("Seleccione un domiciliario");
-        waiterComboBox.getItems().addAll(getDomiciliariosFromDatabase());
+        // ComboBox para pedidos pendientes
+        pedidoComboBox = new ComboBox<>();
+        pedidoComboBox.setPromptText("Seleccione un pedido pendiente");
+        List<String> pedidosPendientes = getPedidosPendientesFromDatabase();
+        pedidosPendientes.add("Ninguno"); // Agregar opción "Ninguno"
+        pedidoComboBox.getItems().addAll(pedidosPendientes);
+        pedidoComboBox.setOnAction(e -> populatePedidoDetails(pedidoComboBox.getValue()));
 
-        // Botón para abrir domiciliarios
-        Button openWaiterButton = new Button("Crear Domic.");
-        openWaiterButton.setStyle("-fx-font-size: 12px;");
-        openWaiterButton.setOnAction(e -> openDomiciliariosWindow());
+        waiterField = createTextField("Domiciliario:", "Ingrese el domiciliario");
+        clientField = createTextField("Cliente:", "Ingrese el cliente");
+        addressField = createTextField("Dirección:", "Ingrese la dirección");
 
-        // ComboBox para clientes
-        clientComboBox = new ComboBox<>();
-        clientComboBox.setPromptText("Seleccione un cliente");
-        clientComboBox.getItems().addAll(getClientesFromDatabase());
-
-        // Botón para abrir clientes
-        Button openClientButton = new Button("Crear Cliente.");
-        openClientButton.setStyle("-fx-font-size: 12px;");
-        openClientButton.setOnAction(e -> openClientesWindow());
-
-        lunchCountField = createTextField("Almuerzos:", "Ingrese cantidad de almuerzos");
+        lunchCountField = createTextField("Cantidad de Almuerzos:", "Ingrese cantidad de almuerzos");
 
         Label priceLabel = new Label("Precio Unitario:");
         priceField = new TextField(String.valueOf(fixedPrice));
@@ -88,24 +80,23 @@ public class Facturar extends Application {
         gridPane.setPadding(new Insets(40, 40, 40, 40));
 
         gridPane.add(titleLabel, 0, 0, 2, 1);
-        gridPane.add(new Label("Domiciliario:"), 0, 1);
-        gridPane.add(waiterComboBox, 1, 1);
-        gridPane.add(openWaiterButton, 2, 1);
-        gridPane.add(new Label("Cliente:"), 0, 2);
-        gridPane.add(clientComboBox, 1, 2);
-        gridPane.add(openClientButton, 2, 2);
-        addToGrid(gridPane, lunchCountField, 3);
-        gridPane.add(priceLabel, 0, 4);
-        gridPane.add(priceField, 1, 4);
-        gridPane.add(dateLabel, 0, 5);
-        gridPane.add(datePicker, 1, 5);
-        gridPane.add(moneyReceivedLabel, 0, 6);
-        gridPane.add(moneyReceivedField, 1, 6);
-        gridPane.add(changeLabel, 0, 7, 2, 1);
-        gridPane.add(totalizeButton, 0, 8, 2, 1);
-        gridPane.add(newInvoiceButton, 0, 8, 4, 1);
-        gridPane.add(backButton, 0, 8, 1, 1);
-        gridPane.add(errorMessage, 0, 11, 2, 1);
+        gridPane.add(new Label("Pedido:"), 0, 1);
+        gridPane.add(pedidoComboBox, 1, 1);
+        addToGrid(gridPane, waiterField, 2);
+        addToGrid(gridPane, clientField, 3);
+        addToGrid(gridPane, addressField, 4);
+        addToGrid(gridPane, lunchCountField, 5);
+        gridPane.add(priceLabel, 0, 6);
+        gridPane.add(priceField, 1, 6);
+        gridPane.add(dateLabel, 0, 7);
+        gridPane.add(datePicker, 1, 7);
+        gridPane.add(moneyReceivedLabel, 0, 8);
+        gridPane.add(moneyReceivedField, 1, 8);
+        gridPane.add(changeLabel, 0, 9, 2, 1);
+        gridPane.add(totalizeButton, 0, 10, 2, 1);
+        gridPane.add(newInvoiceButton, 0, 11, 2, 1);
+        gridPane.add(backButton, 0, 12, 2, 1);
+        gridPane.add(errorMessage, 0, 13, 2, 1);
 
         GridPane.setHalignment(totalizeButton, HPos.CENTER);
         GridPane.setHalignment(newInvoiceButton, HPos.RIGHT);
@@ -120,33 +111,6 @@ public class Facturar extends Application {
         primaryStage.show();
     }
 
-    private void openDomiciliariosWindow() {
-        try {
-            // Cerrar la ventana actual (primaryStage)
-            facturarStage.hide();
-
-            // Crear una nueva instancia de la clase domiciliarios
-            domiciliarios domiciliariosWindow = new domiciliarios(facturarStage);
-            domiciliariosWindow.start(new Stage()); // Iniciar el nuevo Stage
-        } catch (Exception e) {
-            errorMessage.setText("Error al abrir Domiciliarios: " + e.getMessage());
-        }
-    }
-
-    private void openClientesWindow() {
-        try {
-            // Cerrar la ventana actual (primaryStage)
-            facturarStage.hide();
-
-            // Crear una nueva instancia de la clase clientes
-            clientes clientesWindow = new clientes(facturarStage);
-            clientesWindow.start(new Stage()); // Iniciar el nuevo Stage
-        } catch (Exception e) {
-            errorMessage.setText("Error al abrir Clientes: " + e.getMessage());
-        }
-    }
-
-
     private TextField createTextField(String labelText, String prompt) {
         TextField textField = new TextField();
         textField.setPromptText(prompt);
@@ -159,10 +123,63 @@ public class Facturar extends Application {
         gridPane.add(field, 1, row);
     }
 
+    private void populatePedidoDetails(String pedidoInfo) {
+        if (pedidoInfo != null && !pedidoInfo.equals("Ninguno")) {
+            String[] details = pedidoInfo.split(" - ");
+            String pedidoId = details[0];
+            try (Connection connection = conexionDB.getConnection()) {
+                String query = "SELECT c.nombre AS cliente, c.telefono AS telefono, c.direccion AS direccion, d.nombre AS domiciliario, p.fecha_pedido AS fecha, p.valor AS valor, p.plato_seleccionado AS menu " +
+                        "FROM PEDIDOS p " +
+                        "JOIN CLIENTES c ON p.id_cliente = c.id " +
+                        "JOIN DOMICILIARIOS d ON p.id_domiciliario = d.id " +
+                        "WHERE p.id = ?";
+                PreparedStatement stmt = connection.prepareStatement(query);
+                stmt.setInt(1, Integer.parseInt(pedidoId));
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    waiterField.setText(rs.getString("domiciliario"));
+                    clientField.setText(rs.getString("cliente"));
+                    addressField.setText(rs.getString("direccion"));
+                    lunchCountField.setText("1"); // Asumimos que cada pedido tiene un almuerzo
+                    priceField.setText(String.valueOf(rs.getDouble("valor")));
+                    datePicker.setValue(LocalDate.parse(rs.getString("fecha")));
+                    waiterField.setEditable(false);
+                    clientField.setEditable(false);
+                    addressField.setEditable(false);
+                    lunchCountField.setEditable(false);
+                    priceField.setEditable(false);
+                    datePicker.setEditable(false);
+                }
+            } catch (SQLException e) {
+                errorMessage.setText("Error al cargar detalles del pedido: " + e.getMessage());
+            }
+        } else {
+            waiterField.setEditable(true);
+            clientField.setEditable(true);
+            addressField.setEditable(true);
+            lunchCountField.setEditable(true);
+            priceField.setEditable(true);
+            datePicker.setEditable(true);
+            waiterField.clear();
+            clientField.clear();
+            addressField.clear();
+            lunchCountField.clear();
+            priceField.setText(String.valueOf(fixedPrice));
+            datePicker.setValue(LocalDate.now());
+        }
+    }
+
     private void generateInvoice() {
         try {
-            String waiter = waiterComboBox.getValue();
-            String client = clientComboBox.getValue();
+            String pedidoInfo = pedidoComboBox.getValue();
+            if (pedidoInfo == null) {
+                errorMessage.setText("Seleccione un pedido.");
+                return;
+            }
+
+            String waiter = waiterField.getText();
+            String client = clientField.getText();
+            String address = addressField.getText();
             int lunchCount = Integer.parseInt(lunchCountField.getText());
             LocalDate date = datePicker.getValue();
             fixedPrice = Double.parseDouble(priceField.getText());
@@ -170,16 +187,13 @@ public class Facturar extends Application {
             double moneyReceived = Double.parseDouble(moneyReceivedField.getText());
             double change = moneyReceived - total;
 
-            // Obtener dirección del cliente desde la base de datos
-            String clientAddress = getClientAddressFromDatabase(client);
-
             String invoice = "Restaurante el buen sabor\n Nit:8622525\n Telefono:417669" +
                     "\n" +
                     "----------------------------------------\n" +
                     "Fecha: " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" +
                     "Domiciliario: " + waiter + "\n" +
                     "Cliente: " + client + "\n" +
-                    "Dirección: " + clientAddress + "\n" +
+                    "Dirección: " + address + "\n" +
                     "Cantidad de Almuerzos: " + lunchCount + "\n" +
                     "Valor Unitario: $" + fixedPrice + "\n" +
                     "Total: $" + total + "\n" +
@@ -196,6 +210,12 @@ public class Facturar extends Application {
             }
 
             insertInvoiceIntoDatabase(invoice, total);
+
+            if (!pedidoInfo.equals("Ninguno")) {
+                String[] details = pedidoInfo.split(" - ");
+                String pedidoId = details[0];
+                updatePedidoStatus(Integer.parseInt(pedidoId), "Facturado");
+            }
 
             errorMessage.setStyle("-fx-text-fill: green;");
             errorMessage.setText("Factura generada correctamente.");
@@ -235,9 +255,23 @@ public class Facturar extends Application {
         }
     }
 
+    private void updatePedidoStatus(int pedidoId, String newStatus) {
+        String query = "UPDATE pedidos SET estado = ? WHERE id = ?";
+        try (Connection conn = conexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, newStatus);
+            pstmt.setInt(2, pedidoId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            errorMessage.setText("Error al actualizar el estado del pedido: " + e.getMessage());
+        }
+    }
+
     private void resetFields() {
-        waiterComboBox.setValue(null);
-        clientComboBox.setValue(null);
+        pedidoComboBox.setValue(null);
+        waiterField.clear();
+        clientField.clear();
+        addressField.clear();
         lunchCountField.clear();
         priceField.setText(String.valueOf(fixedPrice));
         datePicker.setValue(LocalDate.now());
@@ -257,34 +291,26 @@ public class Facturar extends Application {
         despachosWindow.start(new Stage());
     }
 
-    private List<String> getDomiciliariosFromDatabase() {
-        List<String> domiciliarios = new ArrayList<>();
-        String query = "SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM domiciliarios";
+    private List<String> getPedidosPendientesFromDatabase() {
+        List<String> pedidosPendientes = new ArrayList<>();
+        String query = "SELECT p.id, CONCAT(d.nombre, ' ', d.apellido) AS domiciliario, CONCAT(c.nombre, ' ', c.apellido) AS cliente " +
+                "FROM pedidos p " +
+                "JOIN domiciliarios d ON p.id_domiciliario = d.id " +
+                "JOIN clientes c ON p.id_cliente = c.id " +
+                "WHERE p.estado = 'Pendiente'";
         try (Connection conn = conexionDB.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                domiciliarios.add(rs.getString("nombre_completo"));
+                int id = rs.getInt("id");
+                String domiciliario = rs.getString("domiciliario");
+                String cliente = rs.getString("cliente");
+                pedidosPendientes.add(id + " - " + domiciliario + " - " + cliente);
             }
         } catch (SQLException e) {
-            errorMessage.setText("Error al cargar los domiciliarios: " + e.getMessage());
+            errorMessage.setText("Error al cargar los pedidos pendientes: " + e.getMessage());
         }
-        return domiciliarios;
-    }
-
-    private List<String> getClientesFromDatabase() {
-        List<String> clientes = new ArrayList<>();
-        String query = "SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM clientes";
-        try (Connection conn = conexionDB.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                clientes.add(rs.getString("nombre_completo"));
-            }
-        } catch (SQLException e) {
-            errorMessage.setText("Error al cargar los clientes: " + e.getMessage());
-        }
-        return clientes;
+        return pedidosPendientes;
     }
 
     public static void main(String[] args) {
