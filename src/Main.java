@@ -11,11 +11,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.stage.Stage;
 import java.sql.SQLException;
 
@@ -111,7 +106,7 @@ public class Main extends Application {
         //gridPane.setBackground(new Background(background));
 
         // Crear la escena y el escenario
-        Scene scene = new Scene(gridPane, 400, 500);
+        Scene scene = new Scene(gridPane, 350, 550);
         primaryStage.setTitle("Login");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -123,7 +118,7 @@ public class Main extends Application {
         button.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-pref-width: 180px; " +
-                        "-fx-background-color: #4CAF50; " +
+                        "-fx-background-color: #2469e0; " +
                         "-fx-text-fill: white; " +
                         "-fx-font-weight: bold; " +
                         "-fx-padding: 10px 20px; " +

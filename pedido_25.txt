@@ -1,0 +1,10 @@
+ID: 25
+ID Cliente: 1
+ID Domiciliario: 5
+ID Menú del Día: 0
+Fecha del Pedido: 2025-02-13
+Estado: Pendiente
+Dirección de Entrega: Av rojas
+Teléfono del Cliente: 3107864885
+Valor: 14500.0
+Plato Seleccionado: almuerzo del dia

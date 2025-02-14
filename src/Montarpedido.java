@@ -6,8 +6,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.awt.Desktop;
+import java.io.*;
 import java.sql.*;
 import java.time.LocalDate;
+import javafx.scene.image.Image;
 
 public class Montarpedido extends Application {
     private TextField nombreCliente;
@@ -24,6 +27,7 @@ public class Montarpedido extends Application {
     private Button btnClientes;
     private Button btnDomiciliarios;
     private Button btnAgregarMenu;
+    private Button btnImprimir; // Botón para imprimir pedido
 
     public static void main(String[] args) {
         launch(args);
@@ -31,6 +35,13 @@ public class Montarpedido extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // Cargar la imagen de fondo
+        Image fondo = new Image("file:///C:/PROYECTO/images/Pedidos.png");  // Asegúrate de que la ruta sea correcta
+        BackgroundImage backgroundImage = new BackgroundImage(fondo,
+                BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER, BackgroundSize.DEFAULT);
+        Background background = new Background(backgroundImage);
+
         // Inicializamos los controles de la interfaz
         nombreCliente = new TextField();
         apellidoCliente = new TextField();
@@ -54,6 +65,7 @@ public class Montarpedido extends Application {
         btnCancelar = new Button("Cancelar");
         btnClientes = new Button("Ir a Clientes"); // Botón para ir a Clientes.java
         btnDomiciliarios = new Button("Ir a Domiciliarios"); // Botón para ir a Domiciliarios.java
+        btnImprimir = new Button("Imprimir Pedido"); // Botón para imprimir pedido
 
         // Acción al presionar Enter en el campo de teléfono
         telefonoCliente.setOnKeyPressed(event -> {
@@ -67,22 +79,23 @@ public class Montarpedido extends Application {
         root.setVgap(15);
         root.setHgap(15);
         root.setAlignment(Pos.CENTER);
-        root.setStyle("-fx-background-color: #f5f5f5; -fx-padding: 30px;");
+        root.setStyle("-fx-padding: 30px;");
+        root.setBackground(background); // Establecer el fondo de la escena
 
-        // Campos de formulario
-        root.add(crearCampo("Nombre", nombreCliente), 0, 2);
-        root.add(crearCampo("Apellido", apellidoCliente), 0, 3);
+        // Campos de formulario y ubicacion
         root.add(crearCampo("Teléfono", telefonoCliente), 0, 1);
-        root.add(crearCampo("Dirección", direccionCliente), 0, 4);
-        root.add(crearCampo("Fecha del Pedido", fechaPedido), 0, 5);
-        root.add(crearCampo("Valor", valorPedido), 0, 6); // Agregar el campo valor
-        root.add(crearCampo("Menú del Día", menuDiaField), 0, 7); // Campo para menú del día
-        root.add(crearCampo("Domiciliario", comboDomiciliario), 0, 8); // ComboBox para domiciliarios
+        root.add(crearCampo("Nombre", nombreCliente), 0, 2);
+        root.add(crearCampo("Menú del Día", menuDiaField), 0, 3);
+        root.add(crearCampo("Fecha del Pedido", fechaPedido), 0, 4);
+        root.add(crearCampo("Apellido", apellidoCliente), 1, 1);
+        root.add(crearCampo("Dirección", direccionCliente), 1, 2);
+        root.add(crearCampo("Domiciliario", comboDomiciliario), 1, 3);
+        root.add(crearCampo("Valor", valorPedido), 1, 4);
 
         // Botones
         HBox botones = new HBox(30);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios);
+        botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios, btnImprimir);
         root.add(botones, 0, 9, 2, 1);
 
         // Estilo de botones
@@ -94,6 +107,8 @@ public class Montarpedido extends Application {
         btnClientes.setPrefWidth(250);
         btnDomiciliarios.setStyle("-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnDomiciliarios.setPrefWidth(250);
+        btnImprimir.setStyle("-fx-background-color: #8BC34A; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnImprimir.setPrefWidth(250);
 
         // Acción del botón de "Crear Pedido"
         btnCrearPedido.setOnAction(event -> crearPedido());
@@ -102,10 +117,13 @@ public class Montarpedido extends Application {
         btnCancelar.setOnAction(event -> cancelarPedido(primaryStage));
 
         // Acción del botón de "Ir a Clientes"
-        btnClientes.setOnAction(event -> irAClientes(primaryStage));
+        btnClientes.setOnAction(event -> irAClientes());
 
         // Acción del botón de "Ir a Domiciliarios"
-        btnDomiciliarios.setOnAction(event -> irADomiciliarios(primaryStage));
+        btnDomiciliarios.setOnAction(event -> irADomiciliarios());
+
+        // Acción del botón de "Imprimir Pedido"
+        btnImprimir.setOnAction(event -> imprimirPedido());
 
         // Configuración de la escena
         Scene scene = new Scene(root, 1000, 600); // Ajustado para los cambios
@@ -210,6 +228,36 @@ public class Montarpedido extends Application {
             stmt.executeUpdate();
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Pedido creado exitosamente");
             alert.show();
+
+            // Crear y abrir el archivo de texto con la información del pedido
+            File archivoPedido = new File("pedido_" + idCliente + "_" + System.currentTimeMillis() + ".txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(archivoPedido))) {
+                writer.write("Restaurante el Buen sabor\n NIT:?????\n Telefono: ???????\n");
+                //writer.write("ID Cliente: " + idCliente + "\n");
+                writer.write("Nombre: " + nombre + "\n");
+                //writer.write("Apellido: " + apellido + "\n");
+                writer.write("Telefono Cliente: " + telefono + "\n");
+                writer.write("Dirección Cliente: " + direccion + "\n");
+                writer.write("Fecha del Pedido: " + fecha + "\n");
+                writer.write("Valor: " + "$"+ valor + "\n");
+                writer.write("Orden: " + menuDiaField.getText() + "\n");
+                writer.write("Domiciliario: " + comboDomiciliario.getValue() + "\n");
+            } catch (IOException e) {
+                alert = new Alert(Alert.AlertType.ERROR, "Error al escribir el archivo de texto: " + e.getMessage());
+                alert.show();
+                return;
+            }
+
+            // Abrir el archivo de texto en el editor de texto predeterminado
+            if (Desktop.isDesktopSupported()) {
+                try {
+                    Desktop.getDesktop().open(archivoPedido);
+                } catch (IOException e) {
+                    alert = new Alert(Alert.AlertType.ERROR, "Error al abrir el archivo de texto: " + e.getMessage());
+                    alert.show();
+                }
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Error al crear el pedido: " + e.getMessage());
@@ -256,7 +304,7 @@ public class Montarpedido extends Application {
         }
     }
 
-    private void irAClientes(Stage stage) {
+    private void irAClientes() {
         // Cargar la ventana de Clientes (clientes.java)
         try {
             // Crear la nueva ventana de clientes
@@ -264,8 +312,6 @@ public class Montarpedido extends Application {
             Stage nuevaVentana = new Stage(); // Nueva ventana para clientes
             clientesApp.start(nuevaVentana); // Inicializa la ventana de clientes
 
-            // Cerrar la ventana actual
-            stage.close();
         } catch (Exception e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Error al abrir la ventana de clientes: " + e.getMessage());
@@ -273,7 +319,7 @@ public class Montarpedido extends Application {
         }
     }
 
-    private void irADomiciliarios(Stage stage) {
+    private void irADomiciliarios() {
         // Cargar la ventana de Domiciliarios (domiciliarios.java)
         try {
             // Crear la nueva ventana de domiciliarios
@@ -281,8 +327,6 @@ public class Montarpedido extends Application {
             Stage nuevaVentana = new Stage(); // Nueva ventana para domiciliarios
             domiciliariosApp.start(nuevaVentana); // Inicializa la ventana de domiciliarios
 
-            // Cerrar la ventana actual
-            stage.close();
         } catch (Exception e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Error al abrir la ventana de domiciliarios: " + e.getMessage());
@@ -290,4 +334,18 @@ public class Montarpedido extends Application {
         }
     }
 
+    private void imprimirPedido() {
+        // Cargar la ventana de Imprimir (Imprimir.java)
+        try {
+            // Crear la nueva ventana de imprimir
+            Imprimir imprimirApp = new Imprimir();
+            Stage nuevaVentana = new Stage(); // Nueva ventana para imprimir
+            imprimirApp.start(nuevaVentana); // Inicializa la ventana de imprimir
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Error al abrir la ventana de impresión: " + e.getMessage());
+            alert.show();
+        }
+    }
 }

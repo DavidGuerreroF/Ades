@@ -13,6 +13,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
@@ -20,7 +21,8 @@ import javax.mail.internet.*;
 public class CatalogoPedidos extends Application {
     private TableView<Pedido> tablaPedidos;
     private ObservableList<Pedido> listaPedidos;
-    private Button btnCancelar, btnDespachar, btnVolver, btnEnviarEmail;
+    private Button btnCancelar, btnDespachar, btnVolver, btnEnviarEmail, btnFiltrar, btnFacturar;
+    private DatePicker datePickerInicio, datePickerFin;
 
     public static void main(String[] args) {
         launch(args);
@@ -115,17 +117,51 @@ public class CatalogoPedidos extends Application {
         );
         btnEnviarEmail.setOnAction(event -> enviarEmail());
 
+        btnFacturar = new Button("Facturar Pedido");
+        btnFacturar.setStyle(
+                "-fx-background-color: #FFD700; " +
+                        "-fx-text-fill: black; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 10px 20px; " +
+                        "-fx-background-radius: 8px; " +
+                        "-fx-cursor: hand;"
+        );
+        btnFacturar.setOnAction(event -> facturarPedido(primaryStage));
+
+        // Filtros de fecha
+        datePickerInicio = new DatePicker();
+        datePickerInicio.setPromptText("Fecha Inicio");
+
+        datePickerFin = new DatePicker();
+        datePickerFin.setPromptText("Fecha Fin");
+
+        btnFiltrar = new Button("Filtrar");
+        btnFiltrar.setStyle(
+                "-fx-background-color: #1E90FF; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 10px 20px; " +
+                        "-fx-background-radius: 8px; " +
+                        "-fx-cursor: hand;"
+        );
+        btnFiltrar.setOnAction(event -> filtrarPedidos());
+
+        HBox filtros = new HBox(10, new Label("Filtrar por Fechas:"), datePickerInicio, datePickerFin, btnFiltrar);
+        filtros.setAlignment(Pos.CENTER);
+
         HBox botones = new HBox(20);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnDespachar, btnCancelar, btnEnviarEmail, btnVolver);
+        botones.getChildren().addAll(btnDespachar, btnCancelar, btnEnviarEmail, btnVolver, btnFacturar);
 
         // Layout principal
-        VBox root = new VBox(20, tablaPedidos, botones);
+        VBox root = new VBox(20, filtros, tablaPedidos, botones);
         root.setAlignment(Pos.CENTER);
         root.setStyle("-fx-background-color: #f4f4f9; -fx-padding: 20px;");
 
         // Configuración de la escena
-        Scene scene = new Scene(root, 900, 600);
+        Scene scene = new Scene(root, 1000, 800);
         primaryStage.setTitle("Catálogo de Pedidos");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -136,6 +172,7 @@ public class CatalogoPedidos extends Application {
 
     // Método para cargar los pedidos desde la base de datos
     private void cargarPedidos() {
+        listaPedidos.clear();
         try (Connection connection = conexionDB.getConnection()) {
             // Consulta SQL que une PEDIDOS, CLIENTES, DOMICILIARIOS
             String query = "SELECT p.id, c.nombre AS cliente, c.telefono, c.direccion, d.nombre AS domiciliario, p.fecha_pedido, p.estado, p.valor, p.plato_seleccionado " +
@@ -162,6 +199,50 @@ public class CatalogoPedidos extends Application {
         } catch (SQLException e) {
             e.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, "Error al cargar los pedidos: " + e.getMessage());
+            alert.show();
+        }
+    }
+
+    // Método para cargar los pedidos filtrados por fechas desde la base de datos
+    private void filtrarPedidos() {
+        LocalDate fechaInicio = datePickerInicio.getValue();
+        LocalDate fechaFin = datePickerFin.getValue();
+
+        if (fechaInicio != null && fechaFin != null) {
+            listaPedidos.clear();
+            try (Connection connection = conexionDB.getConnection()) {
+                // Consulta SQL que une PEDIDOS, CLIENTES, DOMICILIARIOS y filtra por fechas
+                String query = "SELECT p.id, c.nombre AS cliente, c.telefono, c.direccion, d.nombre AS domiciliario, p.fecha_pedido, p.estado, p.valor, p.plato_seleccionado " +
+                        "FROM PEDIDOS p " +
+                        "JOIN CLIENTES c ON p.id_cliente = c.id " +
+                        "JOIN DOMICILIARIOS d ON p.id_domiciliario = d.id " +
+                        "WHERE p.fecha_pedido BETWEEN ? AND ?";
+
+                PreparedStatement stmt = connection.prepareStatement(query);
+                stmt.setDate(1, Date.valueOf(fechaInicio));
+                stmt.setDate(2, Date.valueOf(fechaFin));
+                ResultSet rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String cliente = rs.getString("cliente");
+                    String telefono = rs.getString("telefono");
+                    String direccion = rs.getString("direccion");
+                    String domiciliario = rs.getString("domiciliario");
+                    String fechaPedido = rs.getString("fecha_pedido");
+                    String estado = rs.getString("estado");
+                    double valor = rs.getDouble("valor");
+                    String platoSeleccionado = rs.getString("plato_seleccionado");
+
+                    listaPedidos.add(new Pedido(id, cliente, telefono, direccion, domiciliario, fechaPedido, estado, valor, platoSeleccionado));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error al filtrar los pedidos: " + e.getMessage());
+                alert.show();
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Por favor, seleccione las fechas de inicio y fin para filtrar.");
             alert.show();
         }
     }
@@ -304,6 +385,26 @@ public class CatalogoPedidos extends Application {
             despachos.start(new Stage());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // Método para facturar un pedido (abrir clase Facturar.java)
+    private void facturarPedido(Stage primaryStage) {
+        Pedido selectedPedido;
+        selectedPedido = tablaPedidos.getSelectionModel().getSelectedItem();
+        if (selectedPedido != null) {
+            primaryStage.hide(); // Cierra la ventana actual
+            try {
+                // Crear una nueva instancia de la clase Facturar
+                Facturar facturar = new Facturar(selectedPedido);
+                // Llamar al método start de Facturar, pasando un nuevo Stage
+                facturar.start(new Stage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Por favor, seleccione un pedido para facturar.");
+            alert.show();
         }
     }
 

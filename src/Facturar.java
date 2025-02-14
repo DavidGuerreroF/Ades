@@ -23,6 +23,13 @@ public class Facturar extends Application {
     private double fixedPrice = 14500.0;
     private Stage facturarStage;
 
+    public Facturar(CatalogoPedidos.Pedido selectedPedido) {
+    }
+
+    public Facturar() {
+
+    }
+
     @Override
     public void start(Stage primaryStage) {
         facturarStage = primaryStage;  // Guardar la referencia al Stage de Facturar
@@ -34,7 +41,7 @@ public class Facturar extends Application {
         pedidoComboBox = new ComboBox<>();
         pedidoComboBox.setPromptText("Seleccione un pedido pendiente");
         List<String> pedidosPendientes = getPedidosPendientesFromDatabase();
-        pedidosPendientes.add("Ninguno"); // Agregar opción "Ninguno"
+        pedidosPendientes.add("Manual"); // Agregar opción "Ninguno"
         pedidoComboBox.getItems().addAll(pedidosPendientes);
         pedidoComboBox.setOnAction(e -> populatePedidoDetails(pedidoComboBox.getValue()));
 
@@ -94,8 +101,8 @@ public class Facturar extends Application {
         gridPane.add(moneyReceivedField, 1, 8);
         gridPane.add(changeLabel, 0, 9, 2, 1);
         gridPane.add(totalizeButton, 0, 10, 2, 1);
-        gridPane.add(newInvoiceButton, 0, 11, 2, 1);
-        gridPane.add(backButton, 0, 12, 2, 1);
+        gridPane.add(newInvoiceButton, 0, 10, 2, 1);
+        gridPane.add(backButton, 0, 10, 2, 1);
         gridPane.add(errorMessage, 0, 13, 2, 1);
 
         GridPane.setHalignment(totalizeButton, HPos.CENTER);
@@ -104,7 +111,7 @@ public class Facturar extends Application {
         GridPane.setHalignment(errorMessage, HPos.CENTER);
         GridPane.setHalignment(changeLabel, HPos.CENTER);
 
-        Scene scene = new Scene(gridPane, 700, 600);
+        Scene scene = new Scene(gridPane, 800, 800);
         scene.setFill(Color.web("#f4f4f4"));
         primaryStage.setTitle("Facturación Restaurante");
         primaryStage.setScene(scene);
@@ -190,6 +197,7 @@ public class Facturar extends Application {
             String invoice = "Restaurante el buen sabor\n Nit:8622525\n Telefono:417669" +
                     "\n" +
                     "----------------------------------------\n" +
+                    "----------------------------------------\n" +
                     "Fecha: " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" +
                     "Domiciliario: " + waiter + "\n" +
                     "Cliente: " + client + "\n" +
@@ -200,10 +208,11 @@ public class Facturar extends Application {
                     "Dinero Recibido: $" + moneyReceived + "\n" +
                     "Cambio a Devolver: $" + change + "\n" +
                     "----------------------------------------\n" +
-                    "ESTE DOCUMENTO NO ES VALIDO COMO FACTURA ELECTRONICA\n" +
+                    "----------------------------------------\n" +
+                    "ESTE DOCUMENTO NO ES VALIDO COMO FACTURA\n ELECTRONICA\n" +
                     "CONSTANCIA DE ENTREGA\n" +
-                    "SOFTWARE REALIZADO POR DAVID GUERRERO\n" +
-                    "ADES SOFTWARE\n";
+                    "Todos los derechos reservados. 2025 \n" +
+                    "Ades Software\n";
 
             try (FileWriter fileWriter = new FileWriter("factura.txt")) {
                 fileWriter.write(invoice);
@@ -211,7 +220,7 @@ public class Facturar extends Application {
 
             insertInvoiceIntoDatabase(invoice, total);
 
-            if (!pedidoInfo.equals("Ninguno")) {
+            if (!pedidoInfo.equals("Manual")) {
                 String[] details = pedidoInfo.split(" - ");
                 String pedidoId = details[0];
                 updatePedidoStatus(Integer.parseInt(pedidoId), "Facturado");

@@ -2,17 +2,20 @@ Restaurante el buen sabor
  Nit:8622525
  Telefono:417669
 ----------------------------------------
-Fecha: 07/02/2025
-Domiciliario: JORGE
-Cliente: MAURICIO
-Dirección: Calle 45c
-Cantidad de Almuerzos: 2
-Valor Unitario: $14500.0
-Total: $29000.0
-Dinero Recibido: $30000.0
-Cambio a Devolver: $1000.0
 ----------------------------------------
-ESTE DOCUMENTO NO ES VALIDO COMO FACTURA ELECTRONICA
+Fecha: 22/11/2024
+Domiciliario: Jaime
+Cliente: JUAN
+Dirección: calle45C
+Cantidad de Almuerzos: 1
+Valor Unitario: $50000.0
+Total: $50000.0
+Dinero Recibido: $50000.0
+Cambio a Devolver: $0.0
+----------------------------------------
+----------------------------------------
+ESTE DOCUMENTO NO ES VALIDO COMO FACTURA
+ ELECTRONICA
 CONSTANCIA DE ENTREGA
-SOFTWARE REALIZADO POR DAVID GUERRERO
-ADES SOFTWARE
+Todos los derechos reservados. 2025 
+Ades Software

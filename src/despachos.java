@@ -2,6 +2,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -18,6 +19,7 @@ import javafx.scene.image.ImageView;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import javafx.scene.layout.AnchorPane;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -69,7 +71,7 @@ public class despachos extends Application {
         btnDomiciliarios.setOnAction(e -> openDomiciliariosWindow());
         btnSalir.setOnAction(e -> primaryStage.close());
         btnMantenimiento.setOnAction(e -> System.out.println("Mantenimiento Base de Datos"));
-        btnCatalogoMenu.setOnAction(e -> openCatalogoMenuWindow());  // Acción del nuevo botón
+        //btnCatalogoMenu.setOnAction(e -> openCatalogoMenuWindow());  // Acción del nuevo botón
 
         // Cargar la fecha y el día de la semana
         LocalDate today = LocalDate.now();
@@ -106,26 +108,32 @@ public class despachos extends Application {
 
         // Crear un layout para los botones (GridPane de 2x4)
         GridPane buttonLayout = new GridPane();
-        buttonLayout.setHgap(10);  // Espaciado horizontal entre columnas
-        buttonLayout.setVgap(10);  // Espaciado vertical entre filas
-        buttonLayout.setAlignment(Pos.CENTER);
+        buttonLayout.setHgap(5);  // Espaciado horizontal entre columnas
+        buttonLayout.setVgap(5);  // Espaciado vertical entre filas
+        buttonLayout.setAlignment(Pos.CENTER_LEFT);
+
+
 
         // Añadir los botones en un Grid (2 columnas x 4 filas)
-        buttonLayout.add(btnFacturar, 1, 0);  // Fila 0, columna 0
-        buttonLayout.add(btnMontarpedido, 0, 0);  // Fila 0, columna 0
-        buttonLayout.add(btnGestionClientes, 0, 4); // Fila 0, columna 1
-        buttonLayout.add(btnGeneracionInformes, 0, 1); // Fila 1, columna 0
+        buttonLayout.add(btnFacturar, 0, 1);  // Fila 0, columna 0
+        buttonLayout.add(btnMontarpedido, 0, 2);  // Fila 0, columna 0
+        buttonLayout.add(btnGestionClientes, 0, 3); // Fila 0, columna 1
+        buttonLayout.add(btnGeneracionInformes, 0, 5); // Fila 1, columna 0
         //buttonLayout.add(btnMenudia, 1, 1); // Fila 1, columna 1
-        buttonLayout.add(btnSeguimientoPedidos, 1, 1); // Fila 2, columna 0
-        buttonLayout.add(btnDomiciliarios, 0, 2); // Fila 2, columna 1
-        buttonLayout.add(btnSalir, 1, 4); // Fila 3, columna 0
-        buttonLayout.add(btnMantenimiento, 0, 3); // Fila 3, columna 1
-        buttonLayout.add(btnCatalogoMenu, 1, 2);  // Añadir el botón de Info Menú del Día en la fila 4, columna 0
+        buttonLayout.add(btnSeguimientoPedidos, 0, 5); // Fila 2, columna 0
+        buttonLayout.add(btnDomiciliarios, 0, 4); // Fila 2, columna 1
+        buttonLayout.add(btnSalir, 0, 6); // Fila 3, columna 0
+        //buttonLayout.add(btnMantenimiento, 0, 3); // Fila 3, columna 1
+        //buttonLayout.add(btnCatalogoMenu, 1, 2);  // Añadir el botón de Info Menú del Día en la fila 4, columna 0
+// Alinea el botón a la derecha en su columna
+        GridPane.setHalignment(btnSalir, HPos.CENTER);  // Esto alinea el botón a la derecha
+
+// Añadir más elementos si es necesario...
 
         // Crear un layout para el mensaje de estado en la esquina derecha
         VBox statusLayout = new VBox(5);
         Text userLabel = new Text("RESTAURANTE EL BUEN SABOR");
-        userLabel.setFill(Color.WHITE);
+        userLabel.setFill(Color.BLACK);
         statusLayout.setAlignment(Pos.CENTER);
         statusLayout.getChildren().addAll(userLabel, statusLabel);
 
@@ -146,7 +154,7 @@ public class despachos extends Application {
         mainLayout.getChildren().add(dateVBox); // Añadir al layout principal
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(mainLayout, 950, 650); // Ajustar tamaño de la ventana
+        Scene scene = new Scene(mainLayout, 700, 700); // Ajustar tamaño de la ventana
 
         // Vincular el tamaño de los botones y el layout a la ventana
         scene.widthProperty().addListener((obs, oldWidth, newWidth) -> {
