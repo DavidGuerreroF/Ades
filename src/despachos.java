@@ -8,18 +8,18 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import javafx.scene.image.Image;           // Para trabajar con imágenes
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import javafx.scene.layout.AnchorPane;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -46,10 +46,14 @@ public class despachos extends Application {
         Button btnMontarpedido = createModernButton("Montar Pedido");
         Button btnGestionClientes = createModernButton("Gestión de Clientes");
         Button btnGeneracionInformes = createModernButton("Cuadre de Caja");
-        //Button btnMenudia = createModernButton("Menú del Día");
+        Button btnCrearProducto = createModernButton("Crear Producto");
         Button btnSeguimientoPedidos = createModernButton("Seguimiento de Pedidos");
         Button btnDomiciliarios = createModernButton("Domiciliarios");
-        Button btnMantenimiento = createModernButton("Mantenimiento Base de Datos");
+        Button btnMantenimiento = createModernButton("Catálogo Productos");
+        Button btnEntrada = createModernButton("Entrada de Inventario");
+        Button btnSalidas = createModernButton("Salida de Inventario");
+        Button btnCatalogoEntradas = createModernButton("Catálogo Entradas");
+        Button btnCatalogoSalidas = createModernButton("Catálogo Salidas");
 
         Button btnSalir = new Button();
         btnSalir.setGraphic(imageView);  // Asignamos la imagen al botón
@@ -58,20 +62,20 @@ public class despachos extends Application {
         btnSalir.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER); // Centrar la imagen en el botón
         btnSalir.setAlignment(Pos.CENTER); // Asegurarse de que el contenido esté centrado
 
-        // Crear el botón para acceder a InfoMenuDia
-        Button btnCatalogoMenu = createModernButton("Info Menú del Día");
-
         // Manejo de eventos de los botones
         btnFacturar.setOnAction(e -> openFacturarWindow());
         btnMontarpedido.setOnAction(e -> openMontarpedidoWindow());
         btnGestionClientes.setOnAction(e -> openClientesWindow());
         btnGeneracionInformes.setOnAction(e -> openCuadreWindow());
-        //btnMenudia.setOnAction(e -> openMenudiaWindow());
+        btnCrearProducto.setOnAction(e -> openCrearProductoWindow());
         btnSeguimientoPedidos.setOnAction(e -> openCatalogoPedidosWindow());
         btnDomiciliarios.setOnAction(e -> openDomiciliariosWindow());
         btnSalir.setOnAction(e -> primaryStage.close());
-        btnMantenimiento.setOnAction(e -> System.out.println("Mantenimiento Base de Datos"));
-        //btnCatalogoMenu.setOnAction(e -> openCatalogoMenuWindow());  // Acción del nuevo botón
+        btnMantenimiento.setOnAction(e -> openCatalogoProductosWindow());
+        btnEntrada.setOnAction(e -> openEntradaWindow());
+        btnSalidas.setOnAction(e -> openSalidasWindow());
+        btnCatalogoEntradas.setOnAction(e -> openCatalogoEntradasWindow());
+        btnCatalogoSalidas.setOnAction(e -> openCatalogoSalidasWindow());
 
         // Cargar la fecha y el día de la semana
         LocalDate today = LocalDate.now();
@@ -106,29 +110,35 @@ public class despachos extends Application {
         // Verificar la conexión a la base de datos en un hilo separado
         new Thread(this::checkDatabaseConnection).start();
 
-        // Crear un layout para los botones (GridPane de 2x4)
-        GridPane buttonLayout = new GridPane();
-        buttonLayout.setHgap(5);  // Espaciado horizontal entre columnas
-        buttonLayout.setVgap(5);  // Espaciado vertical entre filas
-        buttonLayout.setAlignment(Pos.CENTER_LEFT);
+        // Crear un layout para los botones (2 VBox dentro de un HBox)
+        VBox buttonLayoutLeft = new VBox(10);
+        VBox buttonLayoutRight = new VBox(10);
+        buttonLayoutLeft.setAlignment(Pos.TOP_LEFT);
+        buttonLayoutRight.setAlignment(Pos.TOP_RIGHT);
 
+        // Añadir los botones en los VBox
+        buttonLayoutLeft.getChildren().addAll(
+                btnFacturar,
+                btnMontarpedido,
+                btnGestionClientes,
+                btnGeneracionInformes,
+                btnSeguimientoPedidos,
+                btnDomiciliarios
+        );
 
+        buttonLayoutRight.getChildren().addAll(
+                btnCrearProducto,
+                btnMantenimiento,
+                btnEntrada,
+                btnSalidas,
+                btnCatalogoEntradas,
+                btnCatalogoSalidas,
+                btnSalir
+        );
 
-        // Añadir los botones en un Grid (2 columnas x 4 filas)
-        buttonLayout.add(btnFacturar, 0, 1);  // Fila 0, columna 0
-        buttonLayout.add(btnMontarpedido, 0, 2);  // Fila 0, columna 0
-        buttonLayout.add(btnGestionClientes, 0, 3); // Fila 0, columna 1
-        buttonLayout.add(btnGeneracionInformes, 0, 5); // Fila 1, columna 0
-        //buttonLayout.add(btnMenudia, 1, 1); // Fila 1, columna 1
-        buttonLayout.add(btnSeguimientoPedidos, 0, 5); // Fila 2, columna 0
-        buttonLayout.add(btnDomiciliarios, 0, 4); // Fila 2, columna 1
-        buttonLayout.add(btnSalir, 0, 6); // Fila 3, columna 0
-        //buttonLayout.add(btnMantenimiento, 0, 3); // Fila 3, columna 1
-        //buttonLayout.add(btnCatalogoMenu, 1, 2);  // Añadir el botón de Info Menú del Día en la fila 4, columna 0
-// Alinea el botón a la derecha en su columna
-        GridPane.setHalignment(btnSalir, HPos.CENTER);  // Esto alinea el botón a la derecha
-
-// Añadir más elementos si es necesario...
+        // Crear un HBox para contener los dos VBox
+        HBox mainButtonsLayout = new HBox(40, buttonLayoutLeft, buttonLayoutRight);
+        mainButtonsLayout.setAlignment(Pos.CENTER);
 
         // Crear un layout para el mensaje de estado en la esquina derecha
         VBox statusLayout = new VBox(5);
@@ -137,11 +147,10 @@ public class despachos extends Application {
         statusLayout.setAlignment(Pos.CENTER);
         statusLayout.getChildren().addAll(userLabel, statusLabel);
 
-
         // Crear un layout vertical principal
         VBox mainLayout = new VBox(40); // Aumento el espaciado entre los elementos principales
-        mainLayout.setAlignment(Pos.TOP_LEFT);
-        mainLayout.getChildren().addAll(buttonLayout, statusLayout);
+        mainLayout.setAlignment(Pos.TOP_CENTER);
+        mainLayout.getChildren().addAll(mainButtonsLayout, statusLayout);
 
         // Establecer el fondo de pantalla
         mainLayout.setStyle("-fx-background-image: url('file:///C:/PROYECTO/images/fondo.png'); "
@@ -154,12 +163,12 @@ public class despachos extends Application {
         mainLayout.getChildren().add(dateVBox); // Añadir al layout principal
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(mainLayout, 700, 700); // Ajustar tamaño de la ventana
+        Scene scene = new Scene(mainLayout, 1200, 800); // Ajustar tamaño de la ventana
 
         // Vincular el tamaño de los botones y el layout a la ventana
         scene.widthProperty().addListener((obs, oldWidth, newWidth) -> {
             double scale = newWidth.doubleValue() / 980;
-            buttonLayout.setStyle("-fx-font-size: " + (scale * 16) + "px;"); // Ajuste dinámico del tamaño de los botones
+            mainButtonsLayout.setStyle("-fx-font-size: " + (scale * 16) + "px;"); // Ajuste dinámico del tamaño de los botones
         });
 
         primaryStage.setScene(scene);
@@ -169,11 +178,18 @@ public class despachos extends Application {
         startClock();
     }
 
+    private void openEntradaWindow() {
+        // Crear una nueva instancia de Entradas sin pasarle el primaryStage
+        Entrada entradasWindow = new Entrada();  // Solo creamos el objeto, no es necesario pasar el primaryStage
+        entradasWindow.start(new Stage());  // Iniciar Entradas con un nuevo Stage
 
-    private void openCatalogoMenuWindow() {
-        // Crear una nueva instancia de CatalogoMenu sin pasarle el primaryStage
-        CatalogoMenu catalogoMenu = new CatalogoMenu();  // Solo creamos el objeto, no es necesario pasar el primaryStage
-        catalogoMenu.start(new Stage());  // Iniciar CatalogoMenu con un nuevo Stage
+        primaryStage.hide();  // Ocultar la ventana principal
+    }
+
+    private void openSalidasWindow() {
+        // Crear una nueva instancia de Entradas sin pasarle el primaryStage
+        Salidas SalidasWindow = new Salidas();  // Solo creamos el objeto, no es necesario pasar el primaryStage
+        SalidasWindow.start(new Stage());  // Iniciar Entradas con un nuevo Stage
 
         primaryStage.hide();  // Ocultar la ventana principal
     }
@@ -186,13 +202,21 @@ public class despachos extends Application {
         primaryStage.hide();  // Ocultar la ventana principal
     }
 
+    private void openCatalogoEntradasWindow() {
+        // Crear una nueva instancia de CatalogoEntradas sin pasarle el primaryStage
+        CatalogoEntradas catalogoEntradasWindow = new CatalogoEntradas();
+        catalogoEntradasWindow.start(new Stage());  // Iniciar CatalogoEntradas con un nuevo Stage
 
+        primaryStage.hide();  // Ocultar la ventana principal
+    }
 
+    private void openCatalogoSalidasWindow() {
+        // Crear una nueva instancia de CatalogoSalidas sin pasarle el primaryStage
+        CatalogoSalidas catalogoSalidasWindow = new CatalogoSalidas();
+        catalogoSalidasWindow.start(new Stage());  // Iniciar CatalogoSalidas con un nuevo Stage
 
-
-
-
-
+        primaryStage.hide();  // Ocultar la ventana principal
+    }
 
     private void checkDatabaseConnection() {
         try {
@@ -241,6 +265,16 @@ public class despachos extends Application {
         primaryStage.hide();
     }
 
+    private void openCatalogoProductosWindow() {
+        // Crear una nueva instancia de la clase CatalogoProductos
+        CatalogoProductos catalogoProductosWindow = new CatalogoProductos();
+
+        // Llamar al método start de la nueva instancia de CatalogoProductos
+        catalogoProductosWindow.start(new Stage()); // Usar un nuevo Stage aquí
+
+        // Ocultar la ventana principal
+        primaryStage.hide();
+    }
 
     private void openClientesWindow() {
         Stage clientesStage = new Stage();
@@ -277,10 +311,10 @@ public class despachos extends Application {
         primaryStage.hide();
     }
 
-    private void openMenudiaWindow() {
-        Stage menuDiaStage = new Stage();
-        Menudia menuDiaWindow = new Menudia(primaryStage);
-        menuDiaWindow.start(menuDiaStage);
+    private void openCrearProductoWindow() {
+        Stage crearProductoStage = new Stage();
+        CrearProducto crearProductoWindow = new CrearProducto();
+        crearProductoWindow.start(crearProductoStage);
         primaryStage.hide();
     }
 
@@ -315,15 +349,6 @@ public class despachos extends Application {
                 + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);"));
 
         return button;
-
-
-
-
-
-
-        // Cambiar el color del botón "Salir"
-
-
     }
 
     public static void main(String[] args) {
