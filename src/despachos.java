@@ -163,16 +163,17 @@ public class despachos extends Application {
         mainLayout.getChildren().add(dateVBox); // Añadir al layout principal
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(mainLayout, 1200, 800); // Ajustar tamaño de la ventana
+        Scene scene = new Scene(mainLayout, 1150, 800); // Ajustar tamaño de la ventana
+        primaryStage.setScene(scene);  // Utiliza el primaryStage existente
+        primaryStage.setResizable(false); // Desactiva la opción de redimensionar
+        primaryStage.show();
 
-        // Vincular el tamaño de los botones y el layout a la ventana
+// Vincular el tamaño de los botones y el layout a la ventana
         scene.widthProperty().addListener((obs, oldWidth, newWidth) -> {
             double scale = newWidth.doubleValue() / 980;
             mainButtonsLayout.setStyle("-fx-font-size: " + (scale * 16) + "px;"); // Ajuste dinámico del tamaño de los botones
         });
 
-        primaryStage.setScene(scene);
-        primaryStage.show();
 
         // Actualizar la hora cada segundo
         startClock();

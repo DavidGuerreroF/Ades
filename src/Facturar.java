@@ -34,7 +34,7 @@ public class Facturar extends Application {
     public void start(Stage primaryStage) {
         facturarStage = primaryStage;  // Guardar la referencia al Stage de Facturar
 
-        Label titleLabel = new Label("A D E S");
+        Label titleLabel = new Label("A D E S  F A C T U R A");
         titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0294b5;");
 
         // ComboBox para pedidos pendientes
@@ -113,7 +113,7 @@ public class Facturar extends Application {
 
         Scene scene = new Scene(gridPane, 800, 800);
         scene.setFill(Color.web("#f4f4f4"));
-        primaryStage.setTitle("Facturación Restaurante");
+        primaryStage.setTitle("Facturación");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
