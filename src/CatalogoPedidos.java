@@ -17,11 +17,12 @@ import java.time.LocalDate;
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
+import java.io.*;
 
 public class CatalogoPedidos extends Application {
     private TableView<Pedido> tablaPedidos;
     private ObservableList<Pedido> listaPedidos;
-    private Button btnCancelar, btnDespachar, btnVolver, btnEnviarEmail, btnFiltrar, btnFacturar;
+    private Button btnCancelar, btnDespachar, btnVolver, btnEnviarEmail, btnFiltrar, btnImprimirPedido, btnFacturar;
     private DatePicker datePickerInicio, datePickerFin;
 
     public static void main(String[] args) {
@@ -81,7 +82,7 @@ public class CatalogoPedidos extends Application {
         );
         btnCancelar.setOnAction(event -> cancelarPedido());
 
-        btnDespachar = new Button("Marcar como Despachado");
+        btnDespachar = new Button("Marcar Despachado");
         btnDespachar.setStyle(
                 "-fx-background-color: #32CD32; " +
                         "-fx-text-fill: white; " +
@@ -93,7 +94,7 @@ public class CatalogoPedidos extends Application {
         );
         btnDespachar.setOnAction(event -> marcarDespachado());
 
-        btnVolver = new Button("Volver al Menú Principal");
+        btnVolver = new Button("Volver");
         btnVolver.setStyle(
                 "-fx-background-color: #4682B4; " +
                         "-fx-text-fill: white; " +
@@ -107,7 +108,7 @@ public class CatalogoPedidos extends Application {
 
         btnEnviarEmail = new Button("Enviar Email");
         btnEnviarEmail.setStyle(
-                "-fx-background-color: #FFA500; " +
+                "-fx-background-color: #4682B4; " +
                         "-fx-text-fill: white; " +
                         "-fx-font-size: 14px; " +
                         "-fx-font-weight: bold; " +
@@ -117,17 +118,17 @@ public class CatalogoPedidos extends Application {
         );
         btnEnviarEmail.setOnAction(event -> enviarEmail());
 
-        btnFacturar = new Button("Facturar Pedido");
-        btnFacturar.setStyle(
-                "-fx-background-color: #FFD700; " +
-                        "-fx-text-fill: black; " +
+        btnImprimirPedido = new Button("Imprimir");
+        btnImprimirPedido.setStyle(
+                "-fx-background-color: #4682B4; " +
+                        "-fx-text-fill: white; " +
                         "-fx-font-size: 14px; " +
                         "-fx-font-weight: bold; " +
                         "-fx-padding: 10px 20px; " +
                         "-fx-background-radius: 8px; " +
                         "-fx-cursor: hand;"
         );
-        btnFacturar.setOnAction(event -> facturarPedido(primaryStage));
+        btnImprimirPedido.setOnAction(event -> imprimirPedido());
 
         // Filtros de fecha
         datePickerInicio = new DatePicker();
@@ -153,7 +154,7 @@ public class CatalogoPedidos extends Application {
 
         HBox botones = new HBox(20);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnDespachar, btnCancelar, btnEnviarEmail, btnVolver, btnFacturar);
+        botones.getChildren().addAll(btnDespachar, btnCancelar, btnEnviarEmail, btnImprimirPedido, btnVolver);
 
         // Layout principal
         VBox root = new VBox(20, filtros, tablaPedidos, botones);
@@ -161,7 +162,7 @@ public class CatalogoPedidos extends Application {
         root.setStyle("-fx-background-color: #f4f4f9; -fx-padding: 20px;");
 
         // Configuración de la escena
-        Scene scene = new Scene(root, 1000, 800);
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("Catálogo de Pedidos");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -388,26 +389,35 @@ public class CatalogoPedidos extends Application {
         }
     }
 
-    // Método para facturar un pedido (abrir clase Facturar.java)
-    private void facturarPedido(Stage primaryStage) {
-        Pedido selectedPedido;
-        selectedPedido = tablaPedidos.getSelectionModel().getSelectedItem();
+    // Método para imprimir un pedido (abrir Notepad con la información del pedido)
+    private void imprimirPedido() {
+        Pedido selectedPedido = tablaPedidos.getSelectionModel().getSelectedItem();
         if (selectedPedido != null) {
-            primaryStage.hide(); // Cierra la ventana actual
             try {
-                // Crear una nueva instancia de la clase Facturar
-                Facturar facturar = new Facturar(selectedPedido);
-                // Llamar al método start de Facturar, pasando un nuevo Stage
-                facturar.start(new Stage());
-            } catch (Exception e) {
+                File tempFile = File.createTempFile("pedido_", ".txt");
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+                    writer.write("Detalles del pedido:\n");
+                    writer.write("No.Pedido: " + selectedPedido.getId() + "\n");
+                    writer.write("Cliente: " + selectedPedido.getCliente() + "\n");
+                    writer.write("Teléfono: " + selectedPedido.getTelefono() + "\n");
+                    writer.write("Dirección: " + selectedPedido.getDireccion() + "\n");
+                    writer.write("Domiciliario: " + selectedPedido.getDomiciliario() + "\n");
+                    writer.write("Fecha del Pedido: " + selectedPedido.getFechaPedido() + "\n");
+                    writer.write("Estado: " + selectedPedido.getEstado() + "\n");
+                    writer.write("Valor: $" + selectedPedido.getValor() + "\n");
+                    writer.write("Plato Seleccionado: " + selectedPedido.getPlatoSeleccionado());
+                }
+                new ProcessBuilder("notepad.exe", tempFile.getAbsolutePath()).start();
+            } catch (IOException e) {
                 e.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error al imprimir el pedido: " + e.getMessage());
+                alert.show();
             }
         } else {
-            Alert alert = new Alert(Alert.AlertType.WARNING, "Por favor, seleccione un pedido para facturar.");
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Por favor, seleccione un pedido para imprimir.");
             alert.show();
         }
     }
-
     // Clase Pedido
     public static class Pedido {
         private final IntegerProperty id;

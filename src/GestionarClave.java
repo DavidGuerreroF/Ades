@@ -50,7 +50,7 @@ public class GestionarClave {
 
         Scene scene = new Scene(gridPane, 300, 200);
         stage.setScene(scene);
-        stage.setTitle("Gestionar Clave");
+        stage.setTitle("Crear Operador");
         stage.show();
     }
 }

@@ -3,15 +3,15 @@ Restaurante el buen sabor
  Telefono:417669
 ----------------------------------------
 ----------------------------------------
-Fecha: 22/11/2024
-Domiciliario: Jaime
-Cliente: JUAN
-Dirección: calle45C
+Fecha: 07/02/2025
+Domiciliario: RAPPI
+Cliente: David
+Dirección: Av rojas
 Cantidad de Almuerzos: 1
-Valor Unitario: $50000.0
-Total: $50000.0
+Valor Unitario: $14500.0
+Total: $14500.0
 Dinero Recibido: $50000.0
-Cambio a Devolver: $0.0
+Cambio a Devolver: $35500.0
 ----------------------------------------
 ----------------------------------------
 ESTE DOCUMENTO NO ES VALIDO COMO FACTURA

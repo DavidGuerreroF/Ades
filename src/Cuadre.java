@@ -74,7 +74,7 @@ public class Cuadre extends Application {
         GridPane.setHalignment(backButton, HPos.CENTER);
         GridPane.setHalignment(errorMessage, HPos.CENTER);
 
-        Scene scene = new Scene(gridPane, 600, 600);
+        Scene scene = new Scene(gridPane, 400, 400);
         scene.setFill(Color.web("#f4f4f4"));
         primaryStage.setTitle("Cuadre de Caja");
         primaryStage.setScene(scene);

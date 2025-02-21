@@ -5,7 +5,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.sql.*;
@@ -31,7 +35,9 @@ public class domiciliarios extends Application {
 
         // Crear el label de ayuda
         helpLabel = new Label("Por favor, ingrese los datos del domiciliario.");
-        helpLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #0078D7; -fx-font-weight: bold;");
+        helpLabel.setFont(new Font("Arial", 20));
+        helpLabel.setTextFill(Color.web("#0078D7"));
+        helpLabel.setStyle("-fx-font-weight: bold;");
 
         // Crear etiquetas y campos de texto
         Label nombreLabel = createStyledLabel("Nombre:");
@@ -96,17 +102,18 @@ public class domiciliarios extends Application {
         grid.add(emailField, 1, 4);
 
         // Disposición de botones
-        grid.add(btnCrear, 0, 5);
-        grid.add(btnCatalogo, 1, 5);
-        grid.add(btnCancelar, 0, 6, 2, 1); // Botón "Cancelar" ocupa 2 columnas
+        VBox buttonBox = new VBox(10, btnCrear, btnCatalogo, btnCancelar);
+        buttonBox.setAlignment(Pos.CENTER);
+        grid.add(buttonBox, 0, 5, 2, 1); // Botones ocupan 2 columnas
 
         // Crear el label de estado
         statusLabel = new Label("");
-        statusLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
-        grid.add(statusLabel, 0, 7, 2, 1); // Añadir el label de estado
+        statusLabel.setFont(new Font("Arial", 16));
+        statusLabel.setTextFill(Color.web("#333"));
+        grid.add(statusLabel, 0, 6, 2, 1); // Añadir el label de estado
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(grid, 500, 500);
+        Scene scene = new Scene(grid, 600, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -137,23 +144,29 @@ public class domiciliarios extends Application {
     // Métodos auxiliares para crear etiquetas y campos de texto
     private Label createStyledLabel(String text) {
         Label label = new Label(text);
-        label.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
+        label.setFont(new Font("Arial", 18));
+        label.setTextFill(Color.web("#333"));
+        label.setStyle("-fx-font-weight: bold;");
         return label;
     }
 
     private TextField createStyledTextField() {
         TextField textField = new TextField();
-        textField.setMinSize(200, 40); // Aumentar el tamaño mínimo del campo de texto
-        textField.setStyle("-fx-font-size: 16px; -fx-padding: 5;");
+        textField.setMinSize(250, 40); // Aumentar el tamaño mínimo del campo de texto
+        textField.setFont(new Font("Arial", 16));
+        textField.setStyle("-fx-padding: 10;");
+        textField.setEffect(new DropShadow(2, Color.GRAY));
         return textField;
     }
 
     private Button createStyledButton(String text) {
         Button button = new Button(text);
-        button.setMinSize(150, 50);
-        button.setStyle("-fx-font-size: 16px; -fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;");
-        button.setOnMouseEntered(e -> button.setStyle("-fx-font-size: 16px; -fx-background-color: #005EA6; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"));
-        button.setOnMouseExited(e -> button.setStyle("-fx-font-size: 16px; -fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;"));
+        button.setMinSize(200, 50);
+        button.setFont(new Font("Arial", 16));
+        button.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;");
+        button.setEffect(new DropShadow(5, Color.BLACK));
+        button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #005EA6; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;"));
+        button.setOnMouseExited(e -> button.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;"));
         return button;
     }
 

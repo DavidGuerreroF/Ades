@@ -99,15 +99,15 @@ public class Montarpedido extends Application {
         root.add(botones, 0, 9, 2, 1);
 
         // Estilo de botones
-        btnCrearPedido.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnCrearPedido.setStyle("-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnCrearPedido.setPrefWidth(250);
         btnCancelar.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnCancelar.setPrefWidth(250);
-        btnClientes.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnClientes.setStyle("-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnClientes.setPrefWidth(250);
-        btnDomiciliarios.setStyle("-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnDomiciliarios.setStyle("-fx-background-color:#0294b5; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnDomiciliarios.setPrefWidth(250);
-        btnImprimir.setStyle("-fx-background-color: #8BC34A; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
+        btnImprimir.setStyle("-fx-background-color:#0294b5; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-font-size: 16px; -fx-border-radius: 25px;");
         btnImprimir.setPrefWidth(250);
 
         // Acción del botón de "Crear Pedido"

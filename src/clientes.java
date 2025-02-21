@@ -5,8 +5,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class clientes extends Application {
@@ -22,10 +25,16 @@ public class clientes extends Application {
 
     }
 
+    @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Cliente");
-        this.helpLabel = new Label("Por favor, ingrese los datos del cliente.");
-        this.helpLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #0078D7; -fx-font-weight: bold;");
+
+        // Crear el label de ayuda
+        helpLabel = new Label("Por favor, ingrese los datos del cliente.");
+        helpLabel.setFont(new Font("Arial", 20));
+        helpLabel.setTextFill(Color.web("#0078D7"));
+        helpLabel.setStyle("-fx-font-weight: bold;");
+       // helpLabel.setEffect(new DropShadow(2, Color.BLACK));
 
         // Crear los labels y campos de texto
         Label nombreLabel = createStyledLabel("Nombre:");
@@ -39,8 +48,9 @@ public class clientes extends Application {
         Label direccionLabel = createStyledLabel("Dirección:");
         TextField direccionField = createStyledTextField();
 
-        this.statusLabel = new Label("");
-        this.statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #333;");
+        statusLabel = new Label("");
+        statusLabel.setFont(new Font("Arial", 16));
+        statusLabel.setTextFill(Color.web("#333"));
 
         // Crear los botones
         Button btnGuardar = createStyledButton("Guardar");
@@ -48,7 +58,7 @@ public class clientes extends Application {
         Button btnCatalogo = createStyledButton("Catálogo de Clientes");
 
         // Acción para el botón "Guardar"
-        btnGuardar.setOnAction((e) -> {
+        btnGuardar.setOnAction(e -> {
             String nombre = nombreField.getText().trim();
             String apellido = apellidoField.getText().trim();
             String telefono = telefonoField.getText().trim();
@@ -68,13 +78,13 @@ public class clientes extends Application {
         });
 
         // Acción para el botón "Cancelar"
-        btnCancelar.setOnAction((e) -> {
+        btnCancelar.setOnAction(e -> {
             primaryStage.close();
-            this.mainStage.show();
+            mainStage.show();
         });
 
         // Acción para el botón "Catálogo de Clientes"
-        btnCatalogo.setOnAction((e) -> {
+        btnCatalogo.setOnAction(e -> {
             CatalogoClientes catalogo = new CatalogoClientes();
             catalogo.start(new Stage());
         });
@@ -99,7 +109,7 @@ public class clientes extends Application {
         grid.add(emailField, 1, 4);
         grid.add(direccionLabel, 0, 5);
         grid.add(direccionField, 1, 5);
-        grid.add(this.statusLabel, 0, 7, 2, 1);
+        grid.add(statusLabel, 0, 7, 2, 1);
 
         // Crear un contenedor horizontal para los botones
         HBox buttonLayout = new HBox(15.0); // Espaciado entre botones
@@ -111,41 +121,47 @@ public class clientes extends Application {
         grid.add(buttonLayout, 0, 6, 2, 1);
 
         // Mostrar la escena
-        Scene scene = new Scene(grid, 600.0, 500.0);
+        Scene scene = new Scene(grid, 700.0, 600.0);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
     // Actualizar el mensaje de estado
     private void updateStatus(String action) {
-        this.statusLabel.setText(action);
+        statusLabel.setText(action);
     }
 
     // Crear un label estilizado
     private Label createStyledLabel(String text) {
         Label label = new Label(text);
-        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;");
+        label.setFont(new Font("Arial", 18));
+        label.setTextFill(Color.web("#333"));
+        label.setStyle("-fx-font-weight: bold;");
         return label;
     }
 
     // Crear un campo de texto estilizado
     private TextField createStyledTextField() {
         TextField textField = new TextField();
-        textField.setMinSize(200.0, 40.0);
-        textField.setStyle("-fx-font-size: 16px; -fx-padding: 5; -fx-background-color: #fff; -fx-border-color: #ccc; -fx-border-radius: 5;");
+        textField.setMinSize(250.0, 40.0);
+        textField.setFont(new Font("Arial", 16));
+        textField.setStyle("-fx-padding: 10; -fx-background-color: #fff; -fx-border-color: #ccc; -fx-border-radius: 5;");
+        textField.setEffect(new DropShadow(2, Color.GRAY));
         return textField;
     }
 
     // Crear un botón estilizado
     private Button createStyledButton(String text) {
         Button button = new Button(text);
-        button.setMinSize(150.0, 50.0);
-        button.setStyle("-fx-font-size: 16px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;");
-        button.setOnMouseEntered((e) -> {
-            button.setStyle("-fx-font-size: 16px; -fx-background-color: #45a049; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;");
+        button.setMinSize(200.0, 50.0);
+        button.setFont(new Font("Arial", 16));
+        button.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;");
+        button.setEffect(new DropShadow(5, Color.BLACK));
+        button.setOnMouseEntered(e -> {
+            button.setStyle("-fx-background-color: #005EA6; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;");
         });
-        button.setOnMouseExited((e) -> {
-            button.setStyle("-fx-font-size: 16px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5;");
+        button.setOnMouseExited(e -> {
+            button.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;");
         });
         return button;
     }

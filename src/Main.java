@@ -21,7 +21,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Crear los controles de la interfaz
-        Label welcomeMessage = new Label("Bienvenido a Ades");
+        Label welcomeMessage = new Label("Bienvenido, usuario");
         welcomeMessage.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333333;");
 
         // Campo de Usuario (Username)
@@ -107,7 +107,7 @@ public class Main extends Application {
 
         // Crear la escena y el escenario
         Scene scene = new Scene(gridPane, 350, 550);
-        primaryStage.setTitle("Login");
+        primaryStage.setTitle("Iniciar Sesion");
         primaryStage.setScene(scene);
         primaryStage.show();
     }

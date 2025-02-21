@@ -2,12 +2,8 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -18,7 +14,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Entrada extends Application {
 
@@ -83,6 +81,9 @@ public class Entrada extends Application {
             listView.getItems().add(producto.toString());
         }
 
+        // Permitir selección múltiple
+        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         // Crear los botones
         Button btnEntrada = new Button("Registrar Entrada");
         Button btnVolver = new Button("Volver al Menú Principal");
@@ -104,12 +105,15 @@ public class Entrada extends Application {
 
         // Manejar el evento de registrar entrada
         btnEntrada.setOnAction(e -> {
-            String selectedItem = listView.getSelectionModel().getSelectedItem();
-            if (selectedItem != null) {
-                Producto productoSeleccionado = productos.get(listView.getSelectionModel().getSelectedIndex());
-                mostrarFormularioEntrada(productoSeleccionado, listView);
+            List<String> selectedItems = listView.getSelectionModel().getSelectedItems();
+            if (!selectedItems.isEmpty()) {
+                List<Producto> productosSeleccionados = new ArrayList<>();
+                for (String selectedItem : selectedItems) {
+                    productosSeleccionados.add(productos.get(listView.getItems().indexOf(selectedItem)));
+                }
+                mostrarFormularioEntrada(productosSeleccionados, listView);
             } else {
-                mostrarAlerta(AlertType.WARNING, "Advertencia", "Por favor, selecciona un producto para registrar la entrada.");
+                mostrarAlerta(AlertType.WARNING, "Advertencia", "Por favor, selecciona al menos un producto para registrar la entrada.");
             }
         });
 
@@ -126,7 +130,7 @@ public class Entrada extends Application {
         primaryStage.show();
     }
 
-    private void mostrarFormularioEntrada(Producto producto, ListView<String> listView) {
+    private void mostrarFormularioEntrada(List<Producto> productos, ListView<String> listView) {
         Stage stage = new Stage();
         stage.setTitle("Registrar Entrada de Inventario");
 
@@ -136,55 +140,100 @@ public class Entrada extends Application {
         grid.setVgap(15);
         grid.setHgap(15);
 
-        Label cantidadLabel = new Label("Cantidad:");
-        GridPane.setConstraints(cantidadLabel, 0, 0);
-        TextField cantidadInput = new TextField();
-        GridPane.setConstraints(cantidadInput, 1, 0);
+        // Crear campos dinámicamente para cada producto
+        Map<Producto, TextField[]> productoFieldsMap = new HashMap<>();
+        int row = 0;
+        for (Producto producto : productos) {
+            Label productoLabel = new Label(producto.descripcion);
+            GridPane.setConstraints(productoLabel, 0, row, 4, 1); // Span 4 columns
 
-        Label observacionesLabel = new Label("Observaciones:");
-        GridPane.setConstraints(observacionesLabel, 0, 1);
-        TextField observacionesInput = new TextField();
-        GridPane.setConstraints(observacionesInput, 1, 1);
+            Label cantidadLabel = new Label("Cantidad:");
+            GridPane.setConstraints(cantidadLabel, 0, row + 1);
+            TextField cantidadInput = new TextField();
+            GridPane.setConstraints(cantidadInput, 1, row + 1);
+
+            Label costoLabel = new Label("Costo:");
+            GridPane.setConstraints(costoLabel, 0, row + 2);
+            TextField costoInput = new TextField();
+            GridPane.setConstraints(costoInput, 1, row + 2);
+
+            Label observacionesLabel = new Label("Observaciones:");
+            GridPane.setConstraints(observacionesLabel, 0, row + 3);
+            TextField observacionesInput = new TextField();
+            GridPane.setConstraints(observacionesInput, 1, row + 3);
+
+            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, costoLabel, costoInput, observacionesLabel, observacionesInput);
+
+            productoFieldsMap.put(producto, new TextField[]{cantidadInput, costoInput, observacionesInput});
+            row += 4; // Move to the next set of rows for the next product
+        }
 
         Button btnGuardar = new Button("Guardar");
-        GridPane.setConstraints(btnGuardar, 1, 2);
+        GridPane.setConstraints(btnGuardar, 1, row);
 
         // Estilizar el botón de guardar
         String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnGuardar.setStyle(buttonStyle);
-
-        grid.getChildren().addAll(cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, btnGuardar);
+        grid.getChildren().add(btnGuardar);
 
         btnGuardar.setOnAction(e -> {
-            int cantidad = Integer.parseInt(cantidadInput.getText());
-            String observaciones = observacionesInput.getText();
+            try {
+                for (Map.Entry<Producto, TextField[]> entry : productoFieldsMap.entrySet()) {
+                    Producto producto = entry.getKey();
+                    TextField[] fields = entry.getValue();
 
-            registrarEntrada(producto, cantidad, observaciones, listView);
+                    int cantidad = Integer.parseInt(fields[0].getText());
+                    float costo = Float.parseFloat(fields[1].getText());
+                    String observaciones = fields[2].getText();
 
-            stage.close();
+                    registrarEntrada(producto, cantidad, costo, observaciones);
+                }
+
+                actualizarListView(listView);
+                stage.close();
+                mostrarAlerta(AlertType.INFORMATION, "Entrada Exitosa", "Se registraron las entradas correctamente");
+            } catch (NumberFormatException ex) {
+                mostrarAlerta(AlertType.ERROR, "Error", "Por favor, ingrese valores válidos para cantidad y costo.");
+            }
         });
 
-        Scene scene = new Scene(grid, 400, 250);
+        Scene scene = new Scene(grid, 600, 400);
         stage.setScene(scene);
         stage.show();
     }
 
-    private void registrarEntrada(Producto producto, int cantidad, String observaciones, ListView<String> listView) {
-        String sql = "INSERT INTO EntradasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
+    private void registrarEntrada(Producto producto, int cantidad, float costo, String observaciones) {
+        String sqlEntrada = "INSERT INTO EntradasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
+        String sqlActualizarCosto = "UPDATE Productos SET costo = ? WHERE codigo = ?";
 
         try (Connection conn = conexionDB.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmtEntrada = conn.prepareStatement(sqlEntrada);
+             PreparedStatement pstmtActualizarCosto = conn.prepareStatement(sqlActualizarCosto)) {
 
-            pstmt.setInt(1, producto.codigo);
-            pstmt.setInt(2, cantidad);
-            pstmt.setString(3, observaciones);
+            // Insertar entrada en la tabla EntradasInventario
+            pstmtEntrada.setInt(1, producto.codigo);
+            pstmtEntrada.setInt(2, cantidad);
+            pstmtEntrada.setString(3, observaciones);
+            pstmtEntrada.executeUpdate();
 
-            pstmt.executeUpdate();
+            // Actualizar el costo en la tabla Productos
+            pstmtActualizarCosto.setFloat(1, costo);
+            pstmtActualizarCosto.setInt(2, producto.codigo);
+            pstmtActualizarCosto.executeUpdate();
+
             producto.cantidad += cantidad;
-            listView.getItems().set(listView.getSelectionModel().getSelectedIndex(), producto.toString());
+            producto.costo = costo;
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarAlerta(AlertType.ERROR, "Error", "No se pudo registrar la entrada de inventario");
+        }
+    }
+
+    private void actualizarListView(ListView<String> listView) {
+        listView.getItems().clear();
+        List<Producto> productosList = listarProductos();
+        for (Producto producto : productosList) {
+            listView.getItems().add(producto.toString());
         }
     }
 

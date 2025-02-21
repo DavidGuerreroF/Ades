@@ -8,11 +8,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class CrearProducto extends Application {
@@ -23,9 +28,9 @@ public class CrearProducto extends Application {
 
         // Crear el GridPane
         GridPane grid = new GridPane();
-        grid.setPadding(new Insets(10, 10, 10, 10));
-        grid.setVgap(8);
-        grid.setHgap(10);
+        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setVgap(15);
+        grid.setHgap(15);
 
         // Etiquetas y campos de texto
         Label codigoLabel = new Label("Código:");
@@ -51,11 +56,15 @@ public class CrearProducto extends Application {
         Label observacionesLabel = new Label("Observaciones:");
         GridPane.setConstraints(observacionesLabel, 0, 4);
         TextArea observacionesInput = new TextArea();
+        observacionesInput.setPrefRowCount(3);
         GridPane.setConstraints(observacionesInput, 1, 4);
 
         // Botón de crear producto
         Button crearProductoButton = new Button("Crear Producto");
-        GridPane.setConstraints(crearProductoButton, 1, 5);
+        crearProductoButton.setFont(new Font("Arial", 14));
+        crearProductoButton.setTextFill(Color.WHITE);
+        crearProductoButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, new CornerRadii(5), Insets.EMPTY)));
+        crearProductoButton.setMinSize(150, 40);
         crearProductoButton.setOnAction(e -> {
             int codigo = Integer.parseInt(codigoInput.getText());
             String descripcion = descripcionInput.getText();
@@ -70,11 +79,28 @@ public class CrearProducto extends Application {
             }
         });
 
+        // Botón de volver
+        Button volverButton = new Button("Volver");
+        volverButton.setFont(new Font("Arial", 14));
+        volverButton.setTextFill(Color.WHITE);
+        volverButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, new CornerRadii(5), Insets.EMPTY)));
+        volverButton.setMinSize(150, 40);
+        volverButton.setOnAction(e -> {
+            despachos despachos = new despachos();
+            despachos.start(new Stage());
+            primaryStage.close();
+        });
+
+        // Contenedor para los botones
+        HBox buttonBox = new HBox(20);
+        buttonBox.getChildren().addAll(crearProductoButton, volverButton);
+        GridPane.setConstraints(buttonBox, 1, 5);
+
         // Agregar todos los elementos al GridPane
-        grid.getChildren().addAll(codigoLabel, codigoInput, descripcionLabel, descripcionInput, costoLabel, costoInput, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, crearProductoButton);
+        grid.getChildren().addAll(codigoLabel, codigoInput, descripcionLabel, descripcionInput, costoLabel, costoInput, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, buttonBox);
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(grid, 400, 300);
+        Scene scene = new Scene(grid, 600, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

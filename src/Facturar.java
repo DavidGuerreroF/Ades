@@ -20,7 +20,7 @@ public class Facturar extends Application {
     private ComboBox<String> pedidoComboBox;
     private TextField lunchCountField, priceField, moneyReceivedField, waiterField, clientField, addressField;
     private DatePicker datePicker;
-    private double fixedPrice = 14500.0;
+    private double fixedPrice = 14500.0;  //valor fijo x almuerzo
     private Stage facturarStage;
 
     public Facturar(CatalogoPedidos.Pedido selectedPedido) {
@@ -34,8 +34,8 @@ public class Facturar extends Application {
     public void start(Stage primaryStage) {
         facturarStage = primaryStage;  // Guardar la referencia al Stage de Facturar
 
-        Label titleLabel = new Label("A D E S  F A C T U R A");
-        titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0294b5;");
+        //Label titleLabel = new Label("A D E S  F A C T U R A");
+        //titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0294b5;");
 
         // ComboBox para pedidos pendientes
         pedidoComboBox = new ComboBox<>();
@@ -86,7 +86,7 @@ public class Facturar extends Application {
         gridPane.setVgap(20);
         gridPane.setPadding(new Insets(40, 40, 40, 40));
 
-        gridPane.add(titleLabel, 0, 0, 2, 1);
+        //gridPane.add(titleLabel, 0, 0, 2, 1);
         gridPane.add(new Label("Pedido:"), 0, 1);
         gridPane.add(pedidoComboBox, 1, 1);
         addToGrid(gridPane, waiterField, 2);
@@ -101,17 +101,17 @@ public class Facturar extends Application {
         gridPane.add(moneyReceivedField, 1, 8);
         gridPane.add(changeLabel, 0, 9, 2, 1);
         gridPane.add(totalizeButton, 0, 10, 2, 1);
-        gridPane.add(newInvoiceButton, 0, 10, 2, 1);
-        gridPane.add(backButton, 0, 10, 2, 1);
+        gridPane.add(newInvoiceButton, 0, 10, 3, 1);
+        gridPane.add(backButton, 0, 10, 1, 1);
         gridPane.add(errorMessage, 0, 13, 2, 1);
 
         GridPane.setHalignment(totalizeButton, HPos.CENTER);
         GridPane.setHalignment(newInvoiceButton, HPos.RIGHT);
-        GridPane.setHalignment(backButton, HPos.LEFT);
+        GridPane.setHalignment(backButton, HPos.CENTER);
         GridPane.setHalignment(errorMessage, HPos.CENTER);
         GridPane.setHalignment(changeLabel, HPos.CENTER);
 
-        Scene scene = new Scene(gridPane, 800, 800);
+        Scene scene = new Scene(gridPane, 700, 700);
         scene.setFill(Color.web("#f4f4f4"));
         primaryStage.setTitle("Facturación");
         primaryStage.setScene(scene);
