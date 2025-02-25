@@ -82,7 +82,7 @@ public class CatalogoEntradas extends Application {
         Button btnVolver = new Button("Volver al Menú Principal");
 
         // Estilizar los botones
-        String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
+        String buttonStyle = "-fx-background-color:#0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnAnularEntrada.setStyle(buttonStyle);
         btnVolver.setStyle(buttonStyle);
 

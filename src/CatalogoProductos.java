@@ -88,7 +88,7 @@ public class CatalogoProductos extends Application {
         Button btnVolver = new Button("Volver al Menú Principal");
 
         // Estilizar los botones
-        String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
+        String buttonStyle = "-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnActualizar.setStyle(buttonStyle);
         btnVolver.setStyle(buttonStyle);
 
@@ -165,7 +165,7 @@ public class CatalogoProductos extends Application {
         GridPane.setConstraints(btnGuardar, 1, 5);
 
         // Estilizar el botón de guardar
-        String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
+        String buttonStyle = "-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnGuardar.setStyle(buttonStyle);
 
         grid.getChildren().addAll(codigoLabel, codigoInput, descripcionLabel, descripcionInput, costoLabel, costoInput, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, btnGuardar);

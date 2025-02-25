@@ -7,6 +7,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,7 +19,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Salidas extends Application {
 
@@ -83,12 +86,15 @@ public class Salidas extends Application {
             listView.getItems().add(producto.toString());
         }
 
+        // Permitir selección múltiple
+        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         // Crear los botones
         Button btnSalida = new Button("Registrar Salida");
         Button btnVolver = new Button("Volver al Menú Principal");
 
         // Estilizar los botones
-        String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
+        String buttonStyle = "-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnSalida.setStyle(buttonStyle);
         btnVolver.setStyle(buttonStyle);
 
@@ -104,12 +110,15 @@ public class Salidas extends Application {
 
         // Manejar el evento de registrar salida
         btnSalida.setOnAction(e -> {
-            String selectedItem = listView.getSelectionModel().getSelectedItem();
-            if (selectedItem != null) {
-                Producto productoSeleccionado = productos.get(listView.getSelectionModel().getSelectedIndex());
-                mostrarFormularioSalida(productoSeleccionado, listView);
+            List<String> selectedItems = listView.getSelectionModel().getSelectedItems();
+            if (!selectedItems.isEmpty()) {
+                List<Producto> productosSeleccionados = new ArrayList<>();
+                for (String selectedItem : selectedItems) {
+                    productosSeleccionados.add(productos.get(listView.getItems().indexOf(selectedItem)));
+                }
+                mostrarFormularioSalida(productosSeleccionados, listView);
             } else {
-                mostrarAlerta(AlertType.WARNING, "Advertencia", "Por favor, selecciona un producto para registrar la salida.");
+                mostrarAlerta(AlertType.WARNING, "Advertencia", "Por favor, selecciona al menos un producto para registrar la salida.");
             }
         });
 
@@ -126,7 +135,7 @@ public class Salidas extends Application {
         primaryStage.show();
     }
 
-    private void mostrarFormularioSalida(Producto producto, ListView<String> listView) {
+    private void mostrarFormularioSalida(List<Producto> productos, ListView<String> listView) {
         Stage stage = new Stage();
         stage.setTitle("Registrar Salida de Inventario");
 
@@ -136,55 +145,88 @@ public class Salidas extends Application {
         grid.setVgap(15);
         grid.setHgap(15);
 
-        Label cantidadLabel = new Label("Cantidad:");
-        GridPane.setConstraints(cantidadLabel, 0, 0);
-        TextField cantidadInput = new TextField();
-        GridPane.setConstraints(cantidadInput, 1, 0);
+        // Crear campos dinámicamente para cada producto
+        Map<Producto, TextField[]> productoFieldsMap = new HashMap<>();
+        int row = 0;
+        for (Producto producto : productos) {
+            Label productoLabel = new Label(producto.descripcion);
+            GridPane.setConstraints(productoLabel, 0, row, 4, 1); // Span 4 columns
 
-        Label observacionesLabel = new Label("Observaciones:");
-        GridPane.setConstraints(observacionesLabel, 0, 1);
-        TextField observacionesInput = new TextField();
-        GridPane.setConstraints(observacionesInput, 1, 1);
+            Label cantidadLabel = new Label("Cantidad:");
+            GridPane.setConstraints(cantidadLabel, 0, row + 1);
+            TextField cantidadInput = new TextField();
+            cantidadInput.setPromptText("Ingrese la cantidad");
+            GridPane.setConstraints(cantidadInput, 1, row + 1);
+
+            Label observacionesLabel = new Label("Observaciones:");
+            GridPane.setConstraints(observacionesLabel, 0, row + 2);
+            TextField observacionesInput = new TextField();
+            observacionesInput.setPromptText("Ingrese observaciones");
+            GridPane.setConstraints(observacionesInput, 1, row + 2);
+
+            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput);
+
+            productoFieldsMap.put(producto, new TextField[]{cantidadInput, observacionesInput});
+            row += 3; // Move to the next set of rows for the next product
+        }
 
         Button btnGuardar = new Button("Guardar");
-        GridPane.setConstraints(btnGuardar, 1, 2);
+        GridPane.setConstraints(btnGuardar, 1, row);
 
         // Estilizar el botón de guardar
         String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnGuardar.setStyle(buttonStyle);
-
-        grid.getChildren().addAll(cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, btnGuardar);
+        grid.getChildren().add(btnGuardar);
 
         btnGuardar.setOnAction(e -> {
-            int cantidad = Integer.parseInt(cantidadInput.getText());
-            String observaciones = observacionesInput.getText();
+            try {
+                for (Map.Entry<Producto, TextField[]> entry : productoFieldsMap.entrySet()) {
+                    Producto producto = entry.getKey();
+                    TextField[] fields = entry.getValue();
 
-            registrarSalida(producto, cantidad, observaciones, listView);
+                    int cantidad = Integer.parseInt(fields[0].getText());
+                    String observaciones = fields[1].getText();
 
-            stage.close();
+                    registrarSalida(producto, cantidad, observaciones);
+                }
+
+                actualizarListView(listView);
+                stage.close();
+                mostrarAlerta(AlertType.INFORMATION, "Salida Exitosa", "Se registraron las salidas correctamente");
+            } catch (NumberFormatException ex) {
+                mostrarAlerta(AlertType.ERROR, "Error", "Por favor, ingrese valores válidos para cantidad.");
+            }
         });
 
-        Scene scene = new Scene(grid, 400, 250);
+        Scene scene = new Scene(grid, 600, 400);
         stage.setScene(scene);
         stage.show();
     }
 
-    private void registrarSalida(Producto producto, int cantidad, String observaciones, ListView<String> listView) {
-        String sql = "INSERT INTO SalidasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
+    private void registrarSalida(Producto producto, int cantidad, String observaciones) {
+        String sqlSalida = "INSERT INTO SalidasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
 
         try (Connection conn = conexionDB.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmtSalida = conn.prepareStatement(sqlSalida)) {
 
-            pstmt.setInt(1, producto.codigo);
-            pstmt.setInt(2, cantidad);
-            pstmt.setString(3, observaciones);
+            // Insertar salida en la tabla SalidasInventario
+            pstmtSalida.setInt(1, producto.codigo);
+            pstmtSalida.setInt(2, cantidad);
+            pstmtSalida.setString(3, observaciones);
+            pstmtSalida.executeUpdate();
 
-            pstmt.executeUpdate();
             producto.cantidad -= cantidad;
-            listView.getItems().set(listView.getSelectionModel().getSelectedIndex(), producto.toString());
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarAlerta(AlertType.ERROR, "Error", "No se pudo registrar la salida de inventario");
+        }
+    }
+
+    private void actualizarListView(ListView<String> listView) {
+        listView.getItems().clear();
+        List<Producto> productosList = listarProductos();
+        for (Producto producto : productosList) {
+            listView.getItems().add(producto.toString());
         }
     }
 

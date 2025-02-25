@@ -211,7 +211,7 @@ public class despachos extends Application {
         mainLayout.getChildren().add(dateVBox); // Añadir al layout principal
 
         // Crear la escena y mostrarla
-        Scene scene = new Scene(contentLayout, 700, 700); // Ajustar tamaño de la ventana
+        Scene scene = new Scene(contentLayout, 700, 700); // Ajustar tamaño de la ventana ancho y alto
         primaryStage.setScene(scene);  // Utiliza el primaryStage existente
         primaryStage.setResizable(false); // Desactiva la opción de redimensionar
         primaryStage.show();

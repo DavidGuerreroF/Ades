@@ -7,8 +7,8 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,7 +89,7 @@ public class Entrada extends Application {
         Button btnVolver = new Button("Volver al Menú Principal");
 
         // Estilizar los botones
-        String buttonStyle = "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
+        String buttonStyle = "-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnEntrada.setStyle(buttonStyle);
         btnVolver.setStyle(buttonStyle);
 
@@ -145,21 +145,25 @@ public class Entrada extends Application {
         int row = 0;
         for (Producto producto : productos) {
             Label productoLabel = new Label(producto.descripcion);
+            productoLabel.setFont(new Font("Arial", 16));
             GridPane.setConstraints(productoLabel, 0, row, 4, 1); // Span 4 columns
 
             Label cantidadLabel = new Label("Cantidad:");
             GridPane.setConstraints(cantidadLabel, 0, row + 1);
             TextField cantidadInput = new TextField();
+            cantidadInput.setPromptText("Ingrese la cantidad");
             GridPane.setConstraints(cantidadInput, 1, row + 1);
 
             Label costoLabel = new Label("Costo:");
             GridPane.setConstraints(costoLabel, 0, row + 2);
             TextField costoInput = new TextField();
+            costoInput.setPromptText("Ingrese el costo");
             GridPane.setConstraints(costoInput, 1, row + 2);
 
             Label observacionesLabel = new Label("Observaciones:");
             GridPane.setConstraints(observacionesLabel, 0, row + 3);
             TextField observacionesInput = new TextField();
+            observacionesInput.setPromptText("Ingrese observaciones");
             GridPane.setConstraints(observacionesInput, 1, row + 3);
 
             grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, costoLabel, costoInput, observacionesLabel, observacionesInput);
