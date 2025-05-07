@@ -3,6 +3,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -43,6 +44,10 @@ public class Main extends Application {
         // Botón Gestionar Clave
         Button managePasswordButton = createStyledButton("Registrar Usuario");
 
+        // Botón de Ayuda
+        Button helpButton = createStyledSmallButton("?");
+        helpButton.setOnAction(e -> showHelpMessage());
+
         errorMessage = new Label();
         errorMessage.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
 
@@ -74,6 +79,7 @@ public class Main extends Application {
 
         // Agregar los controles al diseño
         gridPane.add(logoView, 0, 0, 2, 1);
+        gridPane.add(helpButton, 1, 1); // Botón de ayuda en la parte superior derecha
         gridPane.add(welcomeMessage, 0, 1, 2, 1);
         gridPane.add(usernameLabel, 0, 2);
         gridPane.add(usernameField, 1, 2);
@@ -85,6 +91,7 @@ public class Main extends Application {
 
         // Centrar los elementos en la columna
         GridPane.setHalignment(logoView, HPos.CENTER);
+        GridPane.setHalignment(helpButton, HPos.RIGHT);
         GridPane.setHalignment(welcomeMessage, HPos.CENTER);
         GridPane.setHalignment(usernameLabel, HPos.LEFT);
         GridPane.setHalignment(usernameField, HPos.CENTER);
@@ -93,17 +100,6 @@ public class Main extends Application {
         GridPane.setHalignment(loginButton, HPos.CENTER);
         GridPane.setHalignment(managePasswordButton, HPos.CENTER);
         GridPane.setHalignment(errorMessage, HPos.CENTER);
-
-        // Cargar la imagen de fondo
-        //Image backgroundImage = new Image("file:///C:/PROYECTO/images/LOGIN.png");
-       // BackgroundImage background = new BackgroundImage(
-         //       backgroundImage,
-           //     BackgroundRepeat.NO_REPEAT,
-             //   BackgroundRepeat.NO_REPEAT,
-               // BackgroundPosition.CENTER,
-                //BackgroundSize.DEFAULT
-        //);
-        //gridPane.setBackground(new Background(background));
 
         // Crear la escena y el escenario
         Scene scene = new Scene(gridPane, 350, 550);
@@ -125,6 +121,24 @@ public class Main extends Application {
                         "-fx-border-radius: 20px; " +
                         "-fx-background-radius: 20px; " +
                         "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0.5, 0, 2);"
+        );
+        return button;
+    }
+
+    // Método para crear botones pequeños con estilo
+    private Button createStyledSmallButton(String text) {
+        Button button = new Button(text);
+        button.setStyle(
+                "-fx-font-size: 12px; " +
+                        "-fx-pref-width: 30px; " +
+                        "-fx-pref-height: 30px; " +
+                        "-fx-background-color: #4CAF50; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-border-radius: 15px; " +
+                        "-fx-background-radius: 15px; " +
+                        "-fx-padding: 5px; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 5, 0.5, 0, 1);"
         );
         return button;
     }
@@ -199,6 +213,15 @@ public class Main extends Application {
         // Abrir la ventana de gestionar claves
         GestionarClave gestionarClaveApp = new GestionarClave();
         gestionarClaveApp.start(new Stage());
+    }
+
+    private void showHelpMessage() {
+        Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
+        helpAlert.setTitle("Acerca del Software");
+        helpAlert.setHeaderText("Bienvendio al boton de ayuda de Ades");
+        helpAlert.setContentText("Este es un software que facilitara el progreso de su negocio manejando modulos tales como: \n" +
+                "insumos, pedidos, cobros, clientes, vendedores e información de su establecimiento. \n\n Si tiene dudas, problemas o sugerencias comuniquese al 3107864885 via Whastapp o llamada telefonica.");
+        helpAlert.showAndWait();
     }
 
     public static void main(String[] args) {

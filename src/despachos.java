@@ -46,19 +46,20 @@ public class despachos extends Application {
         imageView.setFitHeight(80); // Ajustar el tamaño de la imagen
 
         // Crear los botones
-        Button btnFacturar = createModernButton("Facturacion");
-        Button btnMontarpedido = createModernButton("Montar Pedido");
-        Button btnMenu = createModernButton("Menu del dia");
+        Button btnFacturar = createModernButton("Cobros");
+        Button btnMontarpedido = createModernButton("Pedidos");
+        Button btnMenu = createModernButton("Menu");
         Button btnGestionClientes = createModernButton("Clientes");
-        Button btnGeneracionInformes = createModernButton("Cuadre de Caja");
+        Button btnGeneracionInformes = createModernButton("Ventas");
         Button btnCrearProducto = createModernButton("Crear insumos");
         Button btnSeguimientoPedidos = createModernButton("Catalogo de Pedidos");
-        Button btnDomiciliarios = createModernButton("Domiciliarios");
+        Button btnDomiciliarios = createModernButton("Repartidores");
         Button btnCatalogoInsumos = createModernButton("Catalogo Insumos");
         Button btnEntrada = createModernButton("Entrada de Insumos");
         Button btnSalidas = createModernButton("Salida de Insumos");
         Button btnCatalogoEntradas = createModernButton("Catálogo Entradas");
         Button btnCatalogoSalidas = createModernButton("Catálogo Salidas");
+        Button btnAuxiliar = createModernButton("Auxiliar Inventario");
 
         Button btnSalir = new Button();
         btnSalir.setGraphic(imageView);  // Asignamos la imagen al botón
@@ -82,6 +83,7 @@ public class despachos extends Application {
         btnSalidas.setOnAction(e -> openSalidasWindow());
         btnCatalogoEntradas.setOnAction(e -> openCatalogoEntradasWindow());
         btnCatalogoSalidas.setOnAction(e -> openCatalogoSalidasWindow());
+        btnAuxiliar.setOnAction(e -> openAuxiliarWindow());
         btnSalir.setOnAction(e -> {
             // Cierra la aplicación
             System.exit(0);
@@ -121,19 +123,20 @@ public class despachos extends Application {
         // Verificar la conexión a la base de datos en un hilo separado
         new Thread(this::checkDatabaseConnection).start();
 
-        // Crear un layout para los botones en un VBox (menú desplegable)
+
         VBox insumosLayout = new VBox(10);
         insumosLayout.setAlignment(Pos.TOP_LEFT);
         insumosLayout.setPadding(new Insets(10));
         insumosLayout.setPrefWidth(300); // Establecer el ancho del VBox
         insumosLayout.setVisible(false); // Iniciar oculto
+        insumosLayout.setStyle("-fx-background-color: #E8F5E9;"); // Color de fondo verde claro
 
         VBox despachosLayout = new VBox(10);
         despachosLayout.setAlignment(Pos.TOP_LEFT);
         despachosLayout.setPadding(new Insets(10));
         despachosLayout.setPrefWidth(300); // Establecer el ancho del VBox
         despachosLayout.setVisible(false); // Iniciar oculto
-
+        despachosLayout.setStyle("-fx-background-color: #FFEBEE;"); // Color de fondo rojo claro
 
         // Añadir botones a los VBox correspondientes
         insumosLayout.getChildren().addAll(
@@ -142,7 +145,8 @@ public class despachos extends Application {
                 btnSalidas,
                 btnCatalogoInsumos,
                 btnCatalogoEntradas,
-                btnCatalogoSalidas
+                btnCatalogoSalidas,
+                btnAuxiliar
         );
 
         despachosLayout.getChildren().addAll(
@@ -155,11 +159,69 @@ public class despachos extends Application {
                 btnMenu
         );
 
-        // Crear un botón para los menús desplegables
-        Button btnInsumos = createModernButton("Insumos");
+        // Adaptación del botón desplegable de Insumos y Despachos con estilo diferenciado
+        // Botón para el menú desplegable de Insumos
+        Button btnInsumos = new Button("Insumos ▼");
+        btnInsumos.setMinSize(250, 60); // Tamaño del botón
+        btnInsumos.setStyle("-fx-background-color: #A5D6A7; " // Verde claro
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #388E3C; " // Verde oscuro para el borde
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);");
+
+        btnInsumos.setCursor(Cursor.HAND);
+
+        // Efecto al pasar el ratón por encima
+        btnInsumos.setOnMouseEntered(e -> btnInsumos.setStyle("-fx-background-color: #81C784; " // Verde más oscuro al pasar el ratón
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #388E3C; " // Verde oscuro
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);"));
+
+        btnInsumos.setOnMouseExited(e -> btnInsumos.setStyle("-fx-background-color: #A5D6A7; " // Restaurar al verde claro
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #388E3C; " // Verde oscuro
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);"));
+
         btnInsumos.setOnAction(e -> toggleVisibility(insumosLayout));
 
-        Button btnDespachos = createModernButton("Despachos");
+        // Botón para el menú desplegable de Despachos
+        Button btnDespachos = new Button("Despachos ▼");
+        btnDespachos.setMinSize(250, 60); // Tamaño del botón
+        btnDespachos.setStyle("-fx-background-color: #FFCDD2; " // Rojo claro
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #D32F2F; " // Rojo oscuro para el borde
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);");
+
+        btnDespachos.setCursor(Cursor.HAND);
+
+        // Efecto al pasar el ratón por encima
+        btnDespachos.setOnMouseEntered(e -> btnDespachos.setStyle("-fx-background-color: #E57373; " // Rojo más oscuro al pasar el ratón
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #D32F2F; " // Rojo oscuro
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);"));
+
+        btnDespachos.setOnMouseExited(e -> btnDespachos.setStyle("-fx-background-color: #FFCDD2; " // Restaurar al rojo claro
+                + "-fx-text-fill: black; "
+                + "-fx-font-size: 16px; "
+                + "-fx-border-color: #D32F2F; " // Rojo oscuro
+                + "-fx-border-width: 2px; "
+                + "-fx-border-radius: 3px; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0.5, 0, 2);"));
+
         btnDespachos.setOnAction(e -> toggleVisibility(despachosLayout));
 
 
@@ -294,7 +356,7 @@ public class despachos extends Application {
 
     private void openFacturarWindow() {
         // Crear una nueva instancia de Facturar sin pasarle el primaryStage
-        Facturar facturarWindow = new Facturar();  // Crear el objeto Facturar
+        Cobros facturarWindow = new Cobros();  // Crear el objeto Facturar
         facturarWindow.start(new Stage());  // Iniciar Facturar con un nuevo Stage
 
         primaryStage.hide();  // Ocultar la ventana principal
@@ -314,6 +376,14 @@ public class despachos extends Application {
         catalogoSalidasWindow.start(new Stage());  // Iniciar CatalogoSalidas con un nuevo Stage
 
         primaryStage.hide();  // Ocultar la ventana principal
+    }
+
+    private void openAuxiliarWindow() {
+        // Crear una nueva instancia de CatalogoSalidas sin pasarle el primaryStage
+        AuxiliarInventario AuxiliarInventarioWindow = new AuxiliarInventario();
+       AuxiliarInventarioWindow.start(new Stage());  // Iniciar CatalogoSalidas con un nuevo Stage
+
+      primaryStage.hide();  // Ocultar la ventana principal
     }
 
     private void checkDatabaseConnection() {

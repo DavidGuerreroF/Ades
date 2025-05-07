@@ -13,6 +13,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -85,16 +88,18 @@ public class CatalogoProductos extends Application {
 
         // Crear los botones
         Button btnActualizar = new Button("Actualizar Producto");
+        Button btnExportar = new Button("Guardar e imprimir");
         Button btnVolver = new Button("Volver al Menú Principal");
 
         // Estilizar los botones
         String buttonStyle = "-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;";
         btnActualizar.setStyle(buttonStyle);
+        btnExportar.setStyle(buttonStyle);
         btnVolver.setStyle(buttonStyle);
 
         // Crear el layout para los botones
         HBox buttonLayout = new HBox(10);
-        buttonLayout.getChildren().addAll(btnActualizar, btnVolver);
+        buttonLayout.getChildren().addAll(btnActualizar, btnExportar, btnVolver);
         buttonLayout.setAlignment(Pos.CENTER);
 
         // Crear el layout principal
@@ -112,6 +117,9 @@ public class CatalogoProductos extends Application {
                 mostrarAlerta(AlertType.WARNING, "Advertencia", "Por favor, selecciona un producto para actualizar.");
             }
         });
+
+        // Manejar el evento de exportar a Bloc de Notas
+        btnExportar.setOnAction(e -> exportarAFile(productos));
 
         // Manejar el evento de volver al menú principal
         btnVolver.setOnAction(e -> {
@@ -214,6 +222,20 @@ public class CatalogoProductos extends Application {
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.showAndWait();
+    }
+
+    private void exportarAFile(List<Producto> productos) {
+        String filePath = "productos.txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (Producto producto : productos) {
+                writer.write(producto.toString());
+                writer.newLine();
+            }
+            mostrarAlerta(AlertType.INFORMATION, "Éxito", "Productos exportados correctamente a " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta(AlertType.ERROR, "Error", "No se pudo exportar los productos.");
+        }
     }
 
     public static void main(String[] args) {

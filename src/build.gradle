@@ -13,6 +13,7 @@ dependencies {
     implementation 'org.openjfx:javafx-fxml:20'
 }
 
+
 application {
     mainClass = 'com.example.Main'  // Cambia esto a tu clase principal
 }

@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
 import java.awt.Desktop;
 import java.io.*;
 import java.sql.*;
@@ -18,6 +19,8 @@ public class Montarpedido extends Application {
     private TextField telefonoCliente;
     private TextField direccionCliente;
     private DatePicker fechaPedido;
+    private DatePicker fechaCobro;
+    private CheckBox pagoInmediatoCheck;
     private Button btnCrearPedido;
     private Button btnCancelar;
     private TextField valorPedido;
@@ -55,15 +58,28 @@ public class Montarpedido extends Application {
         direccionCliente = new TextField();
         fechaPedido = new DatePicker(LocalDate.now());
         fechaPedido.setEditable(false);
+        fechaCobro = new DatePicker();
+        fechaCobro.setPromptText("Seleccione la fecha de cobro");
+
+        pagoInmediatoCheck = new CheckBox("Pago Inmediato");
+        pagoInmediatoCheck.setStyle("-fx-font-size: 14px;");
+        pagoInmediatoCheck.setOnAction(e -> {
+            if (pagoInmediatoCheck.isSelected()) {
+                fechaCobro.setDisable(true);
+            } else {
+                fechaCobro.setDisable(false);
+            }
+        });
+
         valorPedido = new TextField();
-        valorPedido.setPromptText("Ingrese el valor de pedido");
-        nombreCliente.setPromptText("Ingrese Nombre de cliente");
-        apellidoCliente.setPromptText("Ingrese Apellido de cliente");
-        telefonoCliente.setPromptText("Ingrese telefono de cliente");
-        direccionCliente.setPromptText("Ingrese direccion de cliente");
+        valorPedido.setPromptText("Ingrese el valor del pedido");
+        nombreCliente.setPromptText("Ingrese el nombre del cliente");
+        apellidoCliente.setPromptText("Ingrese el apellido del cliente");
+        telefonoCliente.setPromptText("Ingrese el teléfono del cliente");
+        direccionCliente.setPromptText("Ingrese la dirección del cliente");
 
         menuDiaField = new TextField();
-        menuDiaField.setPromptText("Ingrese el menu asi:(Sopa,Plato,Jugo)");
+        menuDiaField.setPromptText("Ingrese el menú del día (Sopa, Plato, Jugo)");
         menuDiaField.setMinHeight(100);
 
         comboDomiciliario = new ComboBox<>();
@@ -103,6 +119,9 @@ public class Montarpedido extends Application {
         root.add(crearCampo("Nombre", nombreCliente), 0, 2);
         root.add(crearCampo("Menú del Día", menuDiaField), 0, 3);
         root.add(crearCampo("Fecha del Pedido", fechaPedido), 0, 4);
+        root.add(crearCampo("Fecha de Cobro", fechaCobro), 0, 5);
+        root.add(crearCampo("Pago Inmediato", pagoInmediatoCheck), 0, 6);
+
         root.add(crearCampo("Apellido", apellidoCliente), 1, 1);
         root.add(crearCampo("Dirección", direccionCliente), 1, 2);
         root.add(crearCampo("Domiciliario", comboDomiciliario), 1, 3);
@@ -113,14 +132,14 @@ public class Montarpedido extends Application {
         botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios, btnImprimir);
         root.add(botones, 0, 9, 2, 1);
 
-        labelAyuda = new Label("AYUDA ADES:  SI EL CLIENTE/DOMICILIARIO ES NUEVO CREELO POSTERIORMENTE, SOLO DEBE INGRESAR TELEFONO Y DAR ENTER PARA CONTINUAR");
+        labelAyuda = new Label("AYUDA ADES: Si el cliente/domiciliario es nuevo, créelo posteriormente. Solo debe ingresar el teléfono y dar Enter para continuar.");
         labelAyuda.setStyle("-fx-font-size: 12px; -fx-text-fill: #333; -fx-font-weight: normal; -fx-alignment: center;");
 
         // Añadir el mensaje de ayuda al pie de la ventana
         HBox ayudaBox = new HBox(labelAyuda);
         ayudaBox.setAlignment(Pos.CENTER);
         ayudaBox.setStyle("-fx-padding: 10px;");
-        root.add(ayudaBox, 0, 10, 2, 1); // Ubicar el mensaje de ayuda debajo de los botones
+        root.add(ayudaBox, 0, 10, 2, 1);
         estiloBotones();
         return root;
     }
@@ -155,20 +174,6 @@ public class Montarpedido extends Application {
         btnImprimir.setPrefWidth(250);
     }
 
-    private void configurarBotones(Stage primaryStage) {
-        telefonoCliente.setOnKeyPressed(event -> {
-            if (event.getCode().toString().equals("ENTER")) {
-                cargarDatosPorTelefono(telefonoCliente.getText());
-            }
-        });
-
-        btnCrearPedido.setOnAction(event -> crearPedido());
-        btnCancelar.setOnAction(event -> cancelarPedido(primaryStage));
-        btnClientes.setOnAction(event -> irAClientes());
-        btnDomiciliarios.setOnAction(event -> irADomiciliarios());
-        btnImprimir.setOnAction(event -> imprimirPedido());
-    }
-
     private void cargarDatosPorTelefono(String telefono) {
         try (Connection connection = conexionDB.getConnection()) {
             String query = "SELECT nombre, apellido, direccion FROM CLIENTES WHERE telefono = ?";
@@ -188,18 +193,29 @@ public class Montarpedido extends Application {
         }
     }
 
-    private void mostrarAlerta(Alert.AlertType tipo, String mensaje) {
-        Alert alert = new Alert(tipo, mensaje);
-        alert.show();
+    private void configurarBotones(Stage primaryStage) {
+        telefonoCliente.setOnKeyPressed(event -> {
+            if (event.getCode().toString().equals("ENTER")) {
+                cargarDatosPorTelefono(telefonoCliente.getText());
+            }
+        });
+
+
+        btnCrearPedido.setOnAction(event -> crearPedido());
+        btnCancelar.setOnAction(event -> cancelarPedido(primaryStage));
+        btnClientes.setOnAction(event -> irAClientes());
+        btnDomiciliarios.setOnAction(event -> irADomiciliarios());
+        btnImprimir.setOnAction(event -> imprimirPedido());
     }
 
     private void crearPedido() {
         try (Connection connection = conexionDB.getConnection()) {
             String telefono = telefonoCliente.getText();
             String nombre = nombreCliente.getText();
-            String apellido = nombreCliente.getText();
+            String apellido = apellidoCliente.getText();
             String direccion = direccionCliente.getText();
-            String fecha = fechaPedido.getValue().toString();
+            String fechaPedidoStr = fechaPedido.getValue().toString();
+            String estado = pagoInmediatoCheck.isSelected() ? "Cobrado" : "Pendiente";
 
             float valor = obtenerValorPedido();
             if (valor == -1) return;
@@ -216,21 +232,23 @@ public class Montarpedido extends Application {
                 return;
             }
 
-            java.sql.Date fechaSQL = java.sql.Date.valueOf(fecha);
-            String query = "INSERT INTO PEDIDOS (id_cliente, id_domiciliario, fecha_pedido, estado, direccion_entrega, telefono_cliente, valor, plato_seleccionado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            java.sql.Date fechaPedidoSQL = java.sql.Date.valueOf(fechaPedidoStr);
+            java.sql.Date fechaCobroSQL = pagoInmediatoCheck.isSelected() ? null : java.sql.Date.valueOf(fechaCobro.getValue().toString());
+
+            String query = "INSERT INTO PEDIDOS (id_cliente, id_domiciliario, fecha_pedido, estado, direccion_entrega, telefono_cliente, valor, plato_seleccionado, fechacobro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setInt(1, idCliente);
             stmt.setInt(2, idDomiciliario);
-            stmt.setDate(3, fechaSQL);
-            stmt.setString(4, "Pendiente");
+            stmt.setDate(3, fechaPedidoSQL);
+            stmt.setString(4, estado);
             stmt.setString(5, direccion);
             stmt.setString(6, telefono);
             stmt.setFloat(7, valor);
             stmt.setString(8, menuDiaField.getText());
+            stmt.setDate(9, fechaCobroSQL);
 
             stmt.executeUpdate();
             mostrarAlerta(Alert.AlertType.INFORMATION, "Pedido creado exitosamente");
-            crearArchivoPedido(idCliente, nombre, telefono, direccion, fecha, valor);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -277,7 +295,7 @@ public class Montarpedido extends Application {
             writer.write("Telefono Cliente: " + telefono + "\n");
             writer.write("Dirección Cliente: " + direccion + "\n");
             writer.write("Fecha del Pedido: " + fecha + "\n");
-            writer.write("Valor: " + "$"+ valor + "\n");
+            writer.write("Valor: " + "$" + valor + "\n");
             writer.write("Orden: " + menuDiaField.getText() + "\n");
             writer.write("Domiciliario: " + comboDomiciliario.getValue() + "\n");
         } catch (IOException e) {
@@ -341,5 +359,10 @@ public class Montarpedido extends Application {
             e.printStackTrace();
             mostrarAlerta(Alert.AlertType.ERROR, "Error al abrir la ventana de impresión: " + e.getMessage());
         }
+    }
+
+    private void mostrarAlerta(Alert.AlertType tipo, String mensaje) {
+        Alert alert = new Alert(tipo, mensaje);
+        alert.showAndWait();
     }
 }

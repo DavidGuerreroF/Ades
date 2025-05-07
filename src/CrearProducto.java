@@ -18,6 +18,7 @@ import javafx.scene.layout.BackgroundFill;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class CrearProducto extends Application {
@@ -66,16 +67,22 @@ public class CrearProducto extends Application {
         crearProductoButton.setBackground(new Background(new BackgroundFill(Color.DODGERBLUE, new CornerRadii(5), Insets.EMPTY)));
         crearProductoButton.setMinSize(150, 40);
         crearProductoButton.setOnAction(e -> {
-            int codigo = Integer.parseInt(codigoInput.getText());
-            String descripcion = descripcionInput.getText();
-            double costo = Double.parseDouble(costoInput.getText());
-            int cantidad = Integer.parseInt(cantidadInput.getText());
-            String observaciones = observacionesInput.getText();
+            try {
+                int codigo = Integer.parseInt(codigoInput.getText());
+                String descripcion = descripcionInput.getText();
+                double costo = Double.parseDouble(costoInput.getText());
+                int cantidad = Integer.parseInt(cantidadInput.getText());
+                String observaciones = observacionesInput.getText();
 
-            if (crearProducto(codigo, descripcion, costo, cantidad, observaciones)) {
-                mostrarAlerta(AlertType.INFORMATION, "Éxito", "Producto creado exitosamente.");
-            } else {
-                mostrarAlerta(AlertType.ERROR, "Error", "No se pudo crear el producto");
+                if (codigoExiste(codigo)) {
+                    mostrarAlerta(AlertType.WARNING, "Advertencia", "El código ya existe. No se puede crear el producto.");
+                } else if (crearProducto(codigo, descripcion, costo, cantidad, observaciones)) {
+                    mostrarAlerta(AlertType.INFORMATION, "Éxito", "Producto creado exitosamente.");
+                } else {
+                    mostrarAlerta(AlertType.ERROR, "Error", "No se pudo crear el producto.");
+                }
+            } catch (NumberFormatException ex) {
+                mostrarAlerta(AlertType.ERROR, "Error", "Por favor, ingrese valores válidos.");
             }
         });
 
@@ -103,6 +110,23 @@ public class CrearProducto extends Application {
         Scene scene = new Scene(grid, 600, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private boolean codigoExiste(int codigo) {
+        String sql = "SELECT COUNT(*) FROM Productos WHERE codigo = ?";
+        try (Connection conn = conexionDB.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, codigo);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private boolean crearProducto(int codigo, String descripcion, double costo, int cantidad, String observaciones) {

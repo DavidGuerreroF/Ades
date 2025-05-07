@@ -1,0 +1,5 @@
+ID: 2, Código: 258369, Descripción: PASTA 1LB, Costo: 4500.0, Cantidad: 6507, Observaciones: 
+ID: 1, Código: 123456, Descripción: Arroz DiANA, Costo: 2500.0, Cantidad: 5512, Observaciones: Prueba
+ID: 3, Código: 12345, Descripción: ARROZ, Costo: 10000.0, Cantidad: 1, Observaciones: PRUEBA
+ID: 4, Código: 1214, Descripción: arroz, Costo: 12000.0, Cantidad: 1, Observaciones: 
+ID: 5, Código: 123456, Descripción: NUCITA, Costo: 1000.0, Cantidad: 5, Observaciones: SOLO PARA DIABETICOS
