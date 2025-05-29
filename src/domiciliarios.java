@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -20,15 +21,18 @@ public class domiciliarios extends Application {
     private Label helpLabel; // Label para el mensaje de ayuda
     private Stage mainStage; // Referencia al menú principal
 
+    private Label nombreAsterisco;
+    private Label apellidoAsterisco;
+    private Label telefonoAsterisco;
+    private Label emailAsterisco;
+
     // Constructor que recibe el Stage del menú principal
     public domiciliarios(Stage mainStage) {
         this.mainStage = mainStage;
     }
 
-    public domiciliarios() {
-
-    }
-
+    public domiciliarios() {}
+    Button btnCrear = createStyledButton("Crear");
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Domiciliario");
@@ -42,75 +46,117 @@ public class domiciliarios extends Application {
         // Crear etiquetas y campos de texto
         Label nombreLabel = createStyledLabel("Nombre:");
         TextField nombreField = createStyledTextField();
+        nombreAsterisco = createAsteriskLabel();
 
         Label apellidoLabel = createStyledLabel("Apellido:");
         TextField apellidoField = createStyledTextField();
+        apellidoAsterisco = createAsteriskLabel();
 
         Label telefonoLabel = createStyledLabel("Teléfono:");
         TextField telefonoField = createStyledTextField();
+        telefonoAsterisco = createAsteriskLabel();
 
         Label emailLabel = createStyledLabel("Email:");
         TextField emailField = createStyledTextField();
+        emailAsterisco = createAsteriskLabel();
+
+        // Navegación con Enter
+        nombreField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) apellidoField.requestFocus(); });
+        apellidoField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) telefonoField.requestFocus(); });
+        telefonoField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) emailField.requestFocus(); });
+        emailField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) { btnCrear.fire(); } });
 
         // Botones
-        Button btnCrear = createStyledButton("Crear");
+
         btnCrear.setOnAction(e -> {
-            // Validación de campos
-            if (validateFields(nombreField, apellidoField, telefonoField, emailField)) {
-                try {
-                    crearDomiciliario(nombreField.getText(), apellidoField.getText(), telefonoField.getText(), emailField.getText());
-                    updateStatus("CREADO CON ÉXITO");
-                } catch (SQLException ex) {
-                    updateStatus("Error al crear el domiciliario: " + ex.getMessage());
-                }
-            } else {
-                updateStatus("Debe completar todos los campos.");
+            boolean error = false;
+            // Ocultar todos los asteriscos primero
+            nombreAsterisco.setVisible(false);
+            apellidoAsterisco.setVisible(false);
+            telefonoAsterisco.setVisible(false);
+            emailAsterisco.setVisible(false);
+
+            String nombre = nombreField.getText().trim();
+            String apellido = apellidoField.getText().trim();
+            String telefono = telefonoField.getText().trim();
+            String email = emailField.getText().trim();
+
+            // Validación de campos obligatorios
+            if (nombre.isEmpty()) { nombreAsterisco.setVisible(true); error = true; }
+            if (apellido.isEmpty()) { apellidoAsterisco.setVisible(true); error = true; }
+            if (telefono.isEmpty()) { telefonoAsterisco.setVisible(true); error = true; }
+            if (email.isEmpty()) { emailAsterisco.setVisible(true); error = true; }
+
+            if (error) {
+                showError("Debe completar todos los campos obligatorios.");
+                return;
+            }
+
+            // Validar que el teléfono y el correo no estén repetidos
+            if (telefonoYaRegistrado(telefono)) {
+                showError("El número de teléfono ya está registrado para otro domiciliario.");
+                telefonoAsterisco.setVisible(true);
+                return;
+            }
+            if (emailYaRegistrado(email)) {
+                showError("El correo ya está registrado para otro domiciliario.");
+                emailAsterisco.setVisible(true);
+                return;
+            }
+
+            // Guardar domiciliario
+            try {
+                crearDomiciliario(nombre, apellido, telefono, email);
+                showSuccess("Domiciliario creado con éxito.");
+                // Limpiar los campos después de guardar
+                nombreField.clear();
+                apellidoField.clear();
+                telefonoField.clear();
+                emailField.clear();
+            } catch (SQLException ex) {
+                showError("Error al crear el domiciliario: " + ex.getMessage());
             }
         });
 
         Button btnCatalogo = createStyledButton("Catálogo de Domiciliarios");
         btnCatalogo.setOnAction(e -> {
-            // Lógica para abrir el catálogo de domiciliarios
-            CatalogoDomiciliario catalogo = new CatalogoDomiciliario(); // Crear instancia de CatalogoDomiciliarios
-            catalogo.start(new Stage()); // Abrir la ventana del catálogo
+            CatalogoDomiciliario catalogo = new CatalogoDomiciliario();
+            catalogo.start(new Stage());
         });
 
         Button btnCancelar = createStyledButton("Cancelar");
         btnCancelar.setOnAction(e -> {
-            primaryStage.close(); // Cierra la ventana actual
-            mainStage.show(); // Muestra el menú principal
+            primaryStage.close();
+            if (mainStage != null) mainStage.show();
         });
 
         // Crear un layout en cuadrícula
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
-        grid.setHgap(15);
+        grid.setHgap(10);
         grid.setVgap(15);
         grid.setPadding(new Insets(30));
 
         // Agregar el label de ayuda al layout
-        grid.add(helpLabel, 0, 0, 2, 1); // Ocupa dos columnas
+        grid.add(helpLabel, 0, 0, 3, 1); // Ocupa tres columnas
 
-        // Agregar elementos al layout
-        grid.add(nombreLabel, 0, 1);
-        grid.add(nombreField, 1, 1);
-        grid.add(apellidoLabel, 0, 2);
-        grid.add(apellidoField, 1, 2);
-        grid.add(telefonoLabel, 0, 3);
-        grid.add(telefonoField, 1, 3);
-        grid.add(emailLabel, 0, 4);
-        grid.add(emailField, 1, 4);
-
-        // Disposición de botones
-        VBox buttonBox = new VBox(10, btnCrear, btnCatalogo, btnCancelar);
-        buttonBox.setAlignment(Pos.CENTER);
-        grid.add(buttonBox, 0, 5, 2, 1); // Botones ocupan 2 columnas
+        // Agregar elementos al layout con asteriscos en la columna 2
+        int row = 1;
+        grid.add(nombreLabel, 0, row); grid.add(nombreField, 1, row); grid.add(nombreAsterisco, 2, row); row++;
+        grid.add(apellidoLabel, 0, row); grid.add(apellidoField, 1, row); grid.add(apellidoAsterisco, 2, row); row++;
+        grid.add(telefonoLabel, 0, row); grid.add(telefonoField, 1, row); grid.add(telefonoAsterisco, 2, row); row++;
+        grid.add(emailLabel, 0, row); grid.add(emailField, 1, row); grid.add(emailAsterisco, 2, row); row++;
 
         // Crear el label de estado
         statusLabel = new Label("");
         statusLabel.setFont(new Font("Arial", 16));
         statusLabel.setTextFill(Color.web("#333"));
-        grid.add(statusLabel, 0, 6, 2, 1); // Añadir el label de estado
+        grid.add(statusLabel, 0, row, 3, 1); row++;
+
+        // Disposición de botones
+        VBox buttonBox = new VBox(10, btnCrear, btnCatalogo, btnCancelar);
+        buttonBox.setAlignment(Pos.CENTER);
+        grid.add(buttonBox, 0, row, 3, 1);
 
         // Crear la escena y mostrarla
         Scene scene = new Scene(grid, 600, 600);
@@ -118,9 +164,25 @@ public class domiciliarios extends Application {
         primaryStage.show();
     }
 
-    // Método para actualizar el label de estado
-    private void updateStatus(String action) {
-        statusLabel.setText(action);
+    // Etiqueta de asterisco rojo
+    private Label createAsteriskLabel() {
+        Label label = new Label("*");
+        label.setFont(new Font("Arial", 22));
+        label.setTextFill(Color.RED);
+        label.setVisible(false);
+        return label;
+    }
+
+    // Mostrar error en statusLabel
+    private void showError(String mensaje) {
+        statusLabel.setText(mensaje);
+        statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff0000;");
+    }
+
+    // Mostrar éxito en statusLabel
+    private void showSuccess(String mensaje) {
+        statusLabel.setText(mensaje);
+        statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
     }
 
     // Método para crear un domiciliario
@@ -136,9 +198,35 @@ public class domiciliarios extends Application {
         }
     }
 
-    // Método para validar que los campos no estén vacíos
-    private boolean validateFields(TextField nombre, TextField apellido, TextField telefono, TextField email) {
-        return !nombre.getText().isEmpty() && !apellido.getText().isEmpty() && !telefono.getText().isEmpty() && !email.getText().isEmpty();
+    // Métodos para validar teléfono y correo únicos
+    private boolean telefonoYaRegistrado(String telefono) {
+        String sql = "SELECT 1 FROM domiciliarios WHERE telefono = ?";
+        try (Connection conn = conexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, telefono);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return true;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            showError("Error de conexión a la base de datos.");
+        }
+        return false;
+    }
+
+    private boolean emailYaRegistrado(String email) {
+        String sql = "SELECT 1 FROM domiciliarios WHERE email = ?";
+        try (Connection conn = conexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return true;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            showError("Error de conexión a la base de datos.");
+        }
+        return false;
     }
 
     // Métodos auxiliares para crear etiquetas y campos de texto

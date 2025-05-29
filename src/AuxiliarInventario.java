@@ -20,6 +20,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+// iText PDF
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
 
 public class AuxiliarInventario extends Application {
 
@@ -127,10 +136,15 @@ public class AuxiliarInventario extends Application {
         List<Inventario> inventarios = obtenerDatosInventario();
         table.getItems().addAll(inventarios);
 
-        // Botón para exportar datos
-        Button btnExportar = new Button("Exportar a Notepad");
-        btnExportar.setStyle("-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;");
-        btnExportar.setOnAction(e -> exportarAFile(inventarios));
+        // Botón para exportar datos a Notepad
+        Button btnExportarTXT = new Button("Exportar a Notepad");
+        btnExportarTXT.setStyle("-fx-background-color: #0294b5; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;");
+        btnExportarTXT.setOnAction(e -> exportarAFile(inventarios));
+
+        // Botón para exportar a PDF
+        Button btnExportarPDF = new Button("Exportar a PDF");
+        btnExportarPDF.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;");
+        btnExportarPDF.setOnAction(e -> exportarAPdf(inventarios));
 
         // Botón Volver
         Button btnVolver = new Button("Volver");
@@ -152,7 +166,7 @@ public class AuxiliarInventario extends Application {
 
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.getChildren().addAll(btnExportar, btnVolver);
+        buttonBox.getChildren().addAll(btnExportarTXT, btnExportarPDF, btnVolver);
 
         VBox layout = new VBox(20);
         layout.setPadding(new Insets(20));
@@ -176,7 +190,7 @@ public class AuxiliarInventario extends Application {
              ResultSet rsProductos = pstmtProductos.executeQuery()) {
 
             while (rsProductos.next()) {
-                int codigoProducto = rsProductos.getInt("codigo_producto"); // Cambiado a int
+                int codigoProducto = rsProductos.getInt("codigo_producto");
 
                 // Obtener saldo anterior
                 int saldoAnterior = 0;
@@ -192,7 +206,7 @@ public class AuxiliarInventario extends Application {
                 float valorEntradasMes = 0.0f;
 
                 try (PreparedStatement pstmtEntradas = conn.prepareStatement(sqlEntradas)) {
-                    pstmtEntradas.setInt(1, codigoProducto); // Cambiado a setInt
+                    pstmtEntradas.setInt(1, codigoProducto);
                     try (ResultSet rsEntradas = pstmtEntradas.executeQuery()) {
                         if (rsEntradas.next()) {
                             entradasMes = rsEntradas.getInt("totalEntradas");
@@ -211,7 +225,7 @@ public class AuxiliarInventario extends Application {
                 float valorSalidasMes = 0.0f;
 
                 try (PreparedStatement pstmtSalidas = conn.prepareStatement(sqlSalidas)) {
-                    pstmtSalidas.setInt(1, codigoProducto); // Cambiado a setInt
+                    pstmtSalidas.setInt(1, codigoProducto);
                     try (ResultSet rsSalidas = pstmtSalidas.executeQuery()) {
                         if (rsSalidas.next()) {
                             salidasMes = rsSalidas.getInt("totalSalidas");
@@ -256,6 +270,67 @@ public class AuxiliarInventario extends Application {
         } catch (IOException e) {
             e.printStackTrace();
             mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo exportar los datos.");
+        }
+    }
+
+    private void exportarAPdf(List<Inventario> inventarios) {
+        String pdfPath = "auxiliar_inventario.pdf";
+        try {
+            PdfWriter writer = new PdfWriter(pdfPath);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            document.add(new Paragraph("Auxiliar de Inventario").setBold().setFontSize(16));
+
+            // Agregar fecha de impresión
+            LocalDateTime fechaHora = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String fechaImpresion = "Fecha de impresión: " + fechaHora.format(formatter);
+            Paragraph fecha = new Paragraph(fechaImpresion)
+                    .setFontSize(12)
+                    .setTextAlignment(com.itextpdf.layout.property.TextAlignment.RIGHT)
+                    .setMarginBottom(10);
+            document.add(fecha);
+
+            document.add(new Paragraph(" "));
+
+            float[] columnWidths = {50F, 40F, 40F, 40F, 40F, 60F, 60F, 60F, 60F};
+            Table table = new Table(columnWidths);
+            table.addHeaderCell("Código Producto");
+            table.addHeaderCell("Saldo Ant.");
+            table.addHeaderCell("Entradas");
+            table.addHeaderCell("Salidas");
+            table.addHeaderCell("Saldo Act.");
+            table.addHeaderCell("Valor Saldo Ant.");
+            table.addHeaderCell("Valor Entradas");
+            table.addHeaderCell("Valor Salidas");
+            table.addHeaderCell("Valor Saldo Act.");
+
+            for (Inventario inventario : inventarios) {
+                table.addCell(inventario.getCodigoProducto());
+                table.addCell(String.valueOf(inventario.getSaldoAnterior()));
+                table.addCell(String.valueOf(inventario.getEntradasMes()));
+                table.addCell(String.valueOf(inventario.getSalidasMes()));
+                table.addCell(String.valueOf(inventario.getSaldoActual()));
+                table.addCell(String.format("%.2f", inventario.getValorSaldoAnterior()));
+                table.addCell(String.format("%.2f", inventario.getValorEntradasMes()));
+                table.addCell(String.format("%.2f", inventario.getValorSalidasMes()));
+                table.addCell(String.format("%.2f", inventario.getValorSaldoActual()));
+            }
+
+            document.add(table);
+            document.close();
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Datos exportados correctamente a " + pdfPath);
+
+            // Abrir el PDF automáticamente (en Windows)
+            try {
+                Runtime.getRuntime().exec("cmd /c start " + pdfPath);
+            } catch (Exception ex) {
+                // Ignorar error si no se puede abrir automáticamente
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo exportar los datos a PDF.");
         }
     }
 

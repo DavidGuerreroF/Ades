@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -51,6 +52,11 @@ public class Main extends Application {
         errorMessage = new Label();
         errorMessage.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
 
+        // Hipervínculo ¿Olvidaste tu usuario o contraseña?
+        Hyperlink forgotLink = new Hyperlink("¿Olvidaste tu usuario o contraseña?");
+        forgotLink.setStyle("-fx-font-size: 12px; -fx-text-fill: #2469e0;");
+        forgotLink.setOnAction(e -> showForgotMessage());
+
         // Manejar el evento de clic en el botón de login
         loginButton.setOnAction(e -> handleLogin(usernameField.getText(), passwordField.getText(), primaryStage));
 
@@ -87,7 +93,8 @@ public class Main extends Application {
         gridPane.add(passwordField, 1, 3);
         gridPane.add(loginButton, 0, 4, 2, 1);
         gridPane.add(managePasswordButton, 0, 5, 2, 1);
-        gridPane.add(errorMessage, 0, 6, 2, 1);
+        gridPane.add(forgotLink, 0, 6, 2, 1); // <-- Nuevo hipervínculo
+        gridPane.add(errorMessage, 0, 7, 2, 1);
 
         // Centrar los elementos en la columna
         GridPane.setHalignment(logoView, HPos.CENTER);
@@ -99,10 +106,11 @@ public class Main extends Application {
         GridPane.setHalignment(passwordField, HPos.CENTER);
         GridPane.setHalignment(loginButton, HPos.CENTER);
         GridPane.setHalignment(managePasswordButton, HPos.CENTER);
+        GridPane.setHalignment(forgotLink, HPos.CENTER);
         GridPane.setHalignment(errorMessage, HPos.CENTER);
 
         // Crear la escena y el escenario
-        Scene scene = new Scene(gridPane, 350, 550);
+        Scene scene = new Scene(gridPane, 350, 570);
         primaryStage.setTitle("Iniciar Sesion");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -222,6 +230,14 @@ public class Main extends Application {
         helpAlert.setContentText("Este es un software que facilitara el progreso de su negocio manejando modulos tales como: \n" +
                 "insumos, pedidos, cobros, clientes, vendedores e información de su establecimiento. \n\n Si tiene dudas, problemas o sugerencias comuniquese al 3107864885 via Whastapp o llamada telefonica.");
         helpAlert.showAndWait();
+    }
+
+    private void showForgotMessage() {
+        Alert forgotAlert = new Alert(Alert.AlertType.INFORMATION);
+        forgotAlert.setTitle("Recuperación de usuario o contraseña");
+        forgotAlert.setHeaderText("¿Olvidaste tu usuario o contraseña?");
+        forgotAlert.setContentText("Si olvidaste tu usuario o contraseña debes contactar directamente con el administrador del programa para crear una nueva y comunicarte con desarrollo para la eliminacion de la anterior");
+        forgotAlert.showAndWait();
     }
 
     public static void main(String[] args) {

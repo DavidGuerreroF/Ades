@@ -6,132 +6,167 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class clientes extends Application {
     private Label statusLabel;
     private Label helpLabel;
     private Stage mainStage;
 
+    private Label nombreAsterisco;
+    private Label apellidoAsterisco;
+    private Label telefonoAsterisco;
+    private Label emailAsterisco;
+    private Label direccionAsterisco;
+
     public clientes(Stage mainStage) {
         this.mainStage = mainStage;
     }
 
-    public clientes() {
-
-    }
+    public clientes() {}
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Cliente");
 
-        // Crear el label de ayuda
         helpLabel = new Label("Por favor, ingrese los datos del cliente.");
         helpLabel.setFont(new Font("Arial", 20));
         helpLabel.setTextFill(Color.web("#0078D7"));
         helpLabel.setStyle("-fx-font-weight: bold;");
-       // helpLabel.setEffect(new DropShadow(2, Color.BLACK));
 
-        // Crear los labels y campos de texto
         Label nombreLabel = createStyledLabel("Nombre:");
         TextField nombreField = createStyledTextField();
+        nombreAsterisco = createAsteriskLabel();
+
         Label apellidoLabel = createStyledLabel("Apellido:");
         TextField apellidoField = createStyledTextField();
+        apellidoAsterisco = createAsteriskLabel();
+
         Label telefonoLabel = createStyledLabel("Teléfono:");
         TextField telefonoField = createStyledTextField();
+        telefonoAsterisco = createAsteriskLabel();
+
         Label emailLabel = createStyledLabel("Email:");
         TextField emailField = createStyledTextField();
+        emailAsterisco = createAsteriskLabel();
+
         Label direccionLabel = createStyledLabel("Dirección:");
         TextField direccionField = createStyledTextField();
+        direccionAsterisco = createAsteriskLabel();
 
         statusLabel = new Label("");
         statusLabel.setFont(new Font("Arial", 16));
-        statusLabel.setTextFill(Color.web("#333"));
+        statusLabel.setTextFill(Color.web("#ff0000"));
 
-        // Crear los botones
+        // Navegación con Enter
+        nombreField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) apellidoField.requestFocus(); });
+        apellidoField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) telefonoField.requestFocus(); });
+        telefonoField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) emailField.requestFocus(); });
+        emailField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) direccionField.requestFocus(); });
+        direccionField.setOnKeyPressed(event -> { if (event.getCode() == KeyCode.ENTER) { /*btnGuardar.fire();*/ } });
+
         Button btnGuardar = createStyledButton("Guardar");
         Button btnCancelar = createStyledButton("Cancelar");
         Button btnCatalogo = createStyledButton("Catálogo de Clientes");
 
-        // Acción para el botón "Guardar"
         btnGuardar.setOnAction(e -> {
+            boolean error = false;
+            // Ocultar todos los asteriscos primero
+            nombreAsterisco.setVisible(false);
+            apellidoAsterisco.setVisible(false);
+            telefonoAsterisco.setVisible(false);
+            emailAsterisco.setVisible(false);
+            direccionAsterisco.setVisible(false);
+
             String nombre = nombreField.getText().trim();
             String apellido = apellidoField.getText().trim();
             String telefono = telefonoField.getText().trim();
             String email = emailField.getText().trim();
             String direccion = direccionField.getText().trim();
 
-            // Verificar si algún campo está vacío
-            if (nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || email.isEmpty() || direccion.isEmpty()) {
-                updateStatus("Debe completar todos los campos.");
-                statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff0000;");
-            } else {
-                // Llamada al DAO para guardar el cliente en la base de datos
-                clientDAO.saveClient(nombre, apellido, telefono, email, direccion);
-                updateStatus("Cliente guardado con éxito.");
-                statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
+            if (nombre.isEmpty()) { nombreAsterisco.setVisible(true); error = true; }
+            if (apellido.isEmpty()) { apellidoAsterisco.setVisible(true); error = true; }
+            if (telefono.isEmpty()) { telefonoAsterisco.setVisible(true); error = true; }
+            if (email.isEmpty()) { emailAsterisco.setVisible(true); error = true; }
+            if (direccion.isEmpty()) { direccionAsterisco.setVisible(true); error = true; }
+
+            if (error) {
+                showError("Debe completar todos los campos obligatorios.");
+                return;
             }
+            if (telefonoYaRegistrado(telefono)) {
+                showError("El número de teléfono ya está registrado para otro cliente.");
+                telefonoAsterisco.setVisible(true);
+                return;
+            }
+            // clientDAO.saveClient(nombre, apellido, telefono, email, direccion);
+            showSuccess("Cliente guardado con éxito.");
         });
 
-        // Acción para el botón "Cancelar"
         btnCancelar.setOnAction(e -> {
             primaryStage.close();
-            mainStage.show();
+            if (mainStage != null) mainStage.show();
         });
 
-        // Acción para el botón "Catálogo de Clientes"
         btnCatalogo.setOnAction(e -> {
             CatalogoClientes catalogo = new CatalogoClientes();
             catalogo.start(new Stage());
         });
 
-        // Configuración del layout principal
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
-        grid.setHgap(15.0);
+        grid.setHgap(7.0);
         grid.setVgap(15.0);
         grid.setPadding(new Insets(30.0));
         grid.setStyle("-fx-background-color: #f0f0f0; -fx-border-radius: 10; -fx-background-radius: 10;");
 
-        // Agregar los campos al layout
-        grid.add(helpLabel, 0, 0, 2, 1);
-        grid.add(nombreLabel, 0, 1);
-        grid.add(nombreField, 1, 1);
-        grid.add(apellidoLabel, 0, 2);
-        grid.add(apellidoField, 1, 2);
-        grid.add(telefonoLabel, 0, 3);
-        grid.add(telefonoField, 1, 3);
-        grid.add(emailLabel, 0, 4);
-        grid.add(emailField, 1, 4);
-        grid.add(direccionLabel, 0, 5);
-        grid.add(direccionField, 1, 5);
-        grid.add(statusLabel, 0, 7, 2, 1);
+        int row = 0;
+        grid.add(helpLabel, 0, row, 3, 1); row++;
+        grid.add(nombreLabel, 0, row); grid.add(nombreField, 1, row); grid.add(nombreAsterisco, 2, row); row++;
+        grid.add(apellidoLabel, 0, row); grid.add(apellidoField, 1, row); grid.add(apellidoAsterisco, 2, row); row++;
+        grid.add(telefonoLabel, 0, row); grid.add(telefonoField, 1, row); grid.add(telefonoAsterisco, 2, row); row++;
+        grid.add(emailLabel, 0, row); grid.add(emailField, 1, row); grid.add(emailAsterisco, 2, row); row++;
+        grid.add(direccionLabel, 0, row); grid.add(direccionField, 1, row); grid.add(direccionAsterisco, 2, row); row++;
+        grid.add(statusLabel, 0, row, 3, 1); row++;
 
-        // Crear un contenedor horizontal para los botones
-        HBox buttonLayout = new HBox(15.0); // Espaciado entre botones
+        HBox buttonLayout = new HBox(15.0);
         buttonLayout.setAlignment(Pos.CENTER);
         buttonLayout.setPadding(new Insets(15.0));
         buttonLayout.getChildren().addAll(btnGuardar, btnCancelar, btnCatalogo);
 
-        // Agregar el contenedor de botones al layout principal
-        grid.add(buttonLayout, 0, 6, 2, 1);
+        grid.add(buttonLayout, 0, row, 3, 1);
 
-        // Mostrar la escena
         Scene scene = new Scene(grid, 700.0, 600.0);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    // Actualizar el mensaje de estado
-    private void updateStatus(String action) {
-        statusLabel.setText(action);
+    private Label createAsteriskLabel() {
+        Label label = new Label("*");
+        label.setFont(new Font("Arial", 22));
+        label.setTextFill(Color.RED);
+        label.setVisible(false);
+        return label;
     }
 
-    // Crear un label estilizado
+    private void showError(String mensaje) {
+        statusLabel.setText(mensaje);
+        statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff0000;");
+    }
+    private void showSuccess(String mensaje) {
+        statusLabel.setText(mensaje);
+        statusLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #28a745;");
+    }
+
     private Label createStyledLabel(String text) {
         Label label = new Label(text);
         label.setFont(new Font("Arial", 18));
@@ -140,7 +175,6 @@ public class clientes extends Application {
         return label;
     }
 
-    // Crear un campo de texto estilizado
     private TextField createStyledTextField() {
         TextField textField = new TextField();
         textField.setMinSize(250.0, 40.0);
@@ -150,7 +184,6 @@ public class clientes extends Application {
         return textField;
     }
 
-    // Crear un botón estilizado
     private Button createStyledButton(String text) {
         Button button = new Button(text);
         button.setMinSize(200.0, 50.0);
@@ -164,6 +197,24 @@ public class clientes extends Application {
             button.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-border-radius: 10; -fx-background-radius: 10;");
         });
         return button;
+    }
+
+    private boolean telefonoYaRegistrado(String telefono) {
+        boolean existe = false;
+        String sql = "SELECT 1 FROM CLIENTES WHERE telefono = ?";
+        try (Connection conn = conexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, telefono);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    existe = true;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            showError("Error de conexión a la base de datos.");
+        }
+        return existe;
     }
 
     public static void main(String[] args) {

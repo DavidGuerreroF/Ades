@@ -135,6 +135,7 @@ public class Salidas extends Application {
         primaryStage.show();
     }
 
+    // El formulario de salida ya no solicita observaciones
     private void mostrarFormularioSalida(List<Producto> productos, ListView<String> listView) {
         Stage stage = new Stage();
         stage.setTitle("Registrar Salida de Inventario");
@@ -146,7 +147,7 @@ public class Salidas extends Application {
         grid.setHgap(15);
 
         // Crear campos dinámicamente para cada producto
-        Map<Producto, TextField[]> productoFieldsMap = new HashMap<>();
+        Map<Producto, TextField> productoFieldsMap = new HashMap<>();
         int row = 0;
         for (Producto producto : productos) {
             Label productoLabel = new Label(producto.descripcion);
@@ -158,16 +159,10 @@ public class Salidas extends Application {
             cantidadInput.setPromptText("Ingrese la cantidad");
             GridPane.setConstraints(cantidadInput, 1, row + 1);
 
-            Label observacionesLabel = new Label("Observaciones:");
-            GridPane.setConstraints(observacionesLabel, 0, row + 2);
-            TextField observacionesInput = new TextField();
-            observacionesInput.setPromptText("Ingrese observaciones");
-            GridPane.setConstraints(observacionesInput, 1, row + 2);
+            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput);
 
-            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput);
-
-            productoFieldsMap.put(producto, new TextField[]{cantidadInput, observacionesInput});
-            row += 3; // Move to the next set of rows for the next product
+            productoFieldsMap.put(producto, cantidadInput);
+            row += 2; // Move to the next set of rows for the next product
         }
 
         Button btnGuardar = new Button("Guardar");
@@ -180,14 +175,13 @@ public class Salidas extends Application {
 
         btnGuardar.setOnAction(e -> {
             try {
-                for (Map.Entry<Producto, TextField[]> entry : productoFieldsMap.entrySet()) {
+                for (Map.Entry<Producto, TextField> entry : productoFieldsMap.entrySet()) {
                     Producto producto = entry.getKey();
-                    TextField[] fields = entry.getValue();
+                    TextField cantidadField = entry.getValue();
 
-                    int cantidad = Integer.parseInt(fields[0].getText());
-                    String observaciones = fields[1].getText();
+                    int cantidad = Integer.parseInt(cantidadField.getText());
 
-                    registrarSalida(producto, cantidad, observaciones);
+                    registrarSalida(producto, cantidad);
                 }
 
                 actualizarListView(listView);
@@ -203,16 +197,16 @@ public class Salidas extends Application {
         stage.show();
     }
 
-    private void registrarSalida(Producto producto, int cantidad, String observaciones) {
-        String sqlSalida = "INSERT INTO SalidasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
+    // Registrar salida sin observaciones
+    private void registrarSalida(Producto producto, int cantidad) {
+        String sqlSalida = "INSERT INTO SalidasInventario (codigo_producto, cantidad) VALUES (?, ?)";
 
         try (Connection conn = conexionDB.getConnection();
              PreparedStatement pstmtSalida = conn.prepareStatement(sqlSalida)) {
 
-            // Insertar salida en la tabla SalidasInventario
+            // Insertar salida en la tabla SalidasInventario (sin observaciones)
             pstmtSalida.setInt(1, producto.codigo);
             pstmtSalida.setInt(2, cantidad);
-            pstmtSalida.setString(3, observaciones);
             pstmtSalida.executeUpdate();
 
             producto.cantidad -= cantidad;

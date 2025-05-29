@@ -10,8 +10,6 @@ import javafx.geometry.Pos;
 import java.sql.*;
 import java.time.LocalDate;
 import java.io.*;
-
-// iText imports
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.layout.Document;
@@ -68,16 +66,106 @@ public class CatalogoPedidos extends Application {
         tablaPedidos.setItems(listaPedidos);
         tablaPedidos.setPrefWidth(800);
         tablaPedidos.setPrefHeight(400);
-        tablaPedidos.setStyle("-fx-border-color: #2d3b48; -fx-border-width: 1px;");
+        tablaPedidos.setStyle("-fx-border-color: #2d3b48; -fx-border-width: 1px; -fx-background-radius: 10;");
 
-        // Botones de acción con diseño mejorado
+        // Botones de acción con diseño mejorado (estilos directos)
         btnCancelar = new Button("Cancelar Pedido");
+        btnCancelar.setStyle(
+                "-fx-background-color: #ff5e57;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #d32f2f;" +
+                        "-fx-border-width: 2;"
+        );
+        btnCancelar.setOnMouseEntered(e -> btnCancelar.setStyle(
+                "-fx-background-color: #ff2e1f;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #b71c1c;" +
+                        "-fx-border-width: 2;"
+        ));
+        btnCancelar.setOnMouseExited(e -> btnCancelar.setStyle(
+                "-fx-background-color: #ff5e57;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #d32f2f;" +
+                        "-fx-border-width: 2;"
+        ));
         btnCancelar.setOnAction(event -> cancelarPedido());
 
         btnVolver = new Button("Volver");
+        btnVolver.setStyle(
+                "-fx-background-color: #607d8b;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #37474f;" +
+                        "-fx-border-width: 2;"
+        );
+        btnVolver.setOnMouseEntered(e -> btnVolver.setStyle(
+                "-fx-background-color: #455a64;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #263238;" +
+                        "-fx-border-width: 2;"
+        ));
+        btnVolver.setOnMouseExited(e -> btnVolver.setStyle(
+                "-fx-background-color: #607d8b;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #37474f;" +
+                        "-fx-border-width: 2;"
+        ));
         btnVolver.setOnAction(event -> volverAlMenuPrincipal(primaryStage));
 
         btnImprimirPedido = new Button("Imprimir a PDF");
+        btnImprimirPedido.setStyle(
+                "-fx-background-color: #3adb76;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #1baf5e;" +
+                        "-fx-border-width: 2;"
+        );
+        btnImprimirPedido.setOnMouseEntered(e -> btnImprimirPedido.setStyle(
+                "-fx-background-color: #26a65b;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #0e8040;" +
+                        "-fx-border-width: 2;"
+        ));
+        btnImprimirPedido.setOnMouseExited(e -> btnImprimirPedido.setStyle(
+                "-fx-background-color: #3adb76;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 10 24;" +
+                        "-fx-font-size: 15px;" +
+                        "-fx-border-color: #1baf5e;" +
+                        "-fx-border-width: 2;"
+        ));
         btnImprimirPedido.setOnAction(event -> imprimirPedidoPDF());
 
         datePickerInicio = new DatePicker();
@@ -87,6 +175,36 @@ public class CatalogoPedidos extends Application {
         datePickerFin.setPromptText("Fecha Fin");
 
         btnFiltrar = new Button("Filtrar");
+        btnFiltrar.setStyle(
+                "-fx-background-color: #2196f3;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 18;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-border-color: #1565c0;" +
+                        "-fx-border-width: 2;"
+        );
+        btnFiltrar.setOnMouseEntered(e -> btnFiltrar.setStyle(
+                "-fx-background-color: #0d47a1;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 18;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-border-color: #002171;" +
+                        "-fx-border-width: 2;"
+        ));
+        btnFiltrar.setOnMouseExited(e -> btnFiltrar.setStyle(
+                "-fx-background-color: #2196f3;" +
+                        "-fx-text-fill: #fff;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8 18;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-border-color: #1565c0;" +
+                        "-fx-border-width: 2;"
+        ));
         btnFiltrar.setOnAction(event -> filtrarPedidos());
 
         HBox filtros = new HBox(10, new Label("Filtrar por Fechas:"), datePickerInicio, datePickerFin, btnFiltrar);
@@ -98,15 +216,16 @@ public class CatalogoPedidos extends Application {
 
         VBox root = new VBox(20, filtros, tablaPedidos, botones);
         root.setAlignment(Pos.CENTER);
-        root.setStyle("-fx-background-color: #f4f4f9; -fx-padding: 20px;");
+        root.setStyle("-fx-background-color: linear-gradient(to bottom, #f4f4f9 80%, #dde6ed 100%); -fx-padding: 20px; -fx-background-radius: 12;");
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 900, 650);
         primaryStage.setTitle("Catálogo de Pedidos");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         cargarPedidos();
     }
+
 
     // Método para imprimir un pedido a PDF
     private void imprimirPedidoPDF() {

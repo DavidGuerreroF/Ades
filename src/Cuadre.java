@@ -3,7 +3,6 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
@@ -16,20 +15,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 // iText imports
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.io.image.ImageData;
 
 public class Cuadre extends Application {
     private Label totalSalesLabel, totalProfitLabel, errorMessage;
     private DatePicker startDatePicker, endDatePicker;
-    private Button generateReportButton, backButton, showGraphButton;
-    private ComboBox<String> reportTypeComboBox;
+    private Button generateReportButton, backButton;
+    private TextField gastosVentasField;
 
     @Override
     public void start(Stage primaryStage) {
@@ -37,63 +38,73 @@ public class Cuadre extends Application {
         titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0294b5;");
 
         Label startDateLabel = new Label("Fecha de Inicio:");
+        startDateLabel.setStyle("-fx-font-size: 18px;");
         startDatePicker = new DatePicker(LocalDate.now());
+        startDatePicker.setStyle("-fx-font-size: 16px;");
 
         Label endDateLabel = new Label("Fecha de Fin:");
+        endDateLabel.setStyle("-fx-font-size: 18px;");
         endDatePicker = new DatePicker(LocalDate.now());
+        endDatePicker.setStyle("-fx-font-size: 16px;");
 
-        Label reportTypeLabel = new Label("Tipo de Reporte:");
-        reportTypeComboBox = new ComboBox<>();
-        reportTypeComboBox.getItems().addAll("Diario", "Mensual", "Anual");
-        reportTypeComboBox.setValue("Diario");
+        Label gastosLabel = new Label("Gastos de Ventas:");
+        gastosLabel.setStyle("-fx-font-size: 18px;");
+        gastosVentasField = new TextField();
+        gastosVentasField.setPromptText("Ingrese los gastos de ventas");
+        gastosVentasField.setStyle("-fx-font-size: 16px;");
+        gastosVentasField.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*(\\.\\d{0,2})?")) {
+                return change;
+            }
+            return null;
+        }));
 
         totalSalesLabel = new Label("Total Ventas: $0.00");
-        totalSalesLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: green;");
+        totalSalesLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: green; -fx-font-weight: bold;");
 
         totalProfitLabel = new Label("Ganancias Netas: $0.00");
-        totalProfitLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: blue;");
+        totalProfitLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: #0A5A9C; -fx-font-weight: bold;");
 
         generateReportButton = new Button("Generar Reporte");
-        generateReportButton.setStyle("-fx-font-size: 18px; -fx-background-color: #4CAF50; -fx-text-fill: white;");
+        generateReportButton.setStyle("-fx-font-size: 20px; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-pref-width: 250px; -fx-font-weight: bold;");
         generateReportButton.setOnAction(e -> generateCuadreReport());
 
-        showGraphButton = new Button("Mostrar Gráfica");
-        showGraphButton.setStyle("-fx-font-size: 18px; -fx-background-color: #FF9800; -fx-text-fill: white;");
-        showGraphButton.setOnAction(e -> showSalesGraph());
-
         backButton = new Button("Volver");
-        backButton.setStyle("-fx-font-size: 18px; -fx-background-color: #0294b5; -fx-text-fill: white;");
+        backButton.setStyle("-fx-font-size: 20px; -fx-background-color: #0294b5; -fx-text-fill: white; -fx-pref-width: 250px; -fx-font-weight: bold;");
         backButton.setOnAction(e -> goBackToDespachos(primaryStage));
 
         errorMessage = new Label();
-        errorMessage.setStyle("-fx-text-fill: red; -fx-font-size: 16px;");
+        errorMessage.setStyle("-fx-text-fill: red; -fx-font-size: 18px; -fx-font-weight: bold;");
 
         GridPane gridPane = new GridPane();
         gridPane.setAlignment(Pos.CENTER);
-        gridPane.setHgap(20);
-        gridPane.setVgap(20);
-        gridPane.setPadding(new Insets(40, 40, 40, 40));
+        gridPane.setHgap(25);
+        gridPane.setVgap(25);
+        gridPane.setPadding(new Insets(60, 60, 60, 60));
+        gridPane.setStyle("-fx-background-color: #f4f4f4;");
 
         gridPane.add(titleLabel, 0, 0, 2, 1);
         gridPane.add(startDateLabel, 0, 1);
         gridPane.add(startDatePicker, 1, 1);
         gridPane.add(endDateLabel, 0, 2);
         gridPane.add(endDatePicker, 1, 2);
-        gridPane.add(reportTypeLabel, 0, 3);
-        gridPane.add(reportTypeComboBox, 1, 3);
+        gridPane.add(gastosLabel, 0, 3);
+        gridPane.add(gastosVentasField, 1, 3);
         gridPane.add(generateReportButton, 0, 4, 2, 1);
-        gridPane.add(showGraphButton, 0, 5, 2, 1);
-        gridPane.add(totalSalesLabel, 0, 6, 2, 1);
-        gridPane.add(totalProfitLabel, 0, 7, 2, 1);
-        gridPane.add(backButton, 0, 8, 2, 1);
-        gridPane.add(errorMessage, 0, 9, 2, 1);
+        gridPane.add(totalSalesLabel, 0, 5, 2, 1);
+        gridPane.add(totalProfitLabel, 0, 6, 2, 1);
+        gridPane.add(backButton, 0, 7, 2, 1);
+        gridPane.add(errorMessage, 0, 8, 2, 1);
 
+        GridPane.setHalignment(titleLabel, HPos.CENTER);
         GridPane.setHalignment(generateReportButton, HPos.CENTER);
-        GridPane.setHalignment(showGraphButton, HPos.CENTER);
         GridPane.setHalignment(backButton, HPos.CENTER);
+        GridPane.setHalignment(totalSalesLabel, HPos.CENTER);
+        GridPane.setHalignment(totalProfitLabel, HPos.CENTER);
         GridPane.setHalignment(errorMessage, HPos.CENTER);
 
-        Scene scene = new Scene(gridPane, 500, 600);
+        Scene scene = new Scene(gridPane, 700, 750);
         scene.setFill(Color.web("#f4f4f4"));
         primaryStage.setTitle("Reporte de Ventas");
         primaryStage.setScene(scene);
@@ -105,52 +116,112 @@ public class Cuadre extends Application {
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             double totalSales = calculateSalesByDateRange(startDate, endDate);
-            double totalProfit = calculateProfit(totalSales);
+            double gastosVentas = obtenerGastosVentas();
+            double totalProfit = calculateProfit(totalSales, gastosVentas);
 
-            totalSalesLabel.setText("Total Ventas: $" + totalSales);
-            totalProfitLabel.setText("Ganancias Netas: $" + totalProfit);
+            totalSalesLabel.setText("Total Ventas: $" + String.format("%.2f", totalSales));
+            totalProfitLabel.setText("Ganancias Netas: $" + String.format("%.2f", totalProfit));
 
-            // Generar el contenido del reporte
-            String reportContent = generateReportContent(startDate, endDate, totalSales, totalProfit);
-
-            // Ruta del archivo PDF
             String pdfFilePath = "reporte_ventas.pdf";
+            createPdfReport(pdfFilePath, startDate, endDate, totalSales, gastosVentas, totalProfit);
 
-            // Crear el PDF usando iText
-            createPdfReport(pdfFilePath, reportContent);
-
-            // Mostrar mensaje de éxito
-            errorMessage.setStyle("-fx-text-fill: green;");
+            errorMessage.setStyle("-fx-text-fill: green; -fx-font-size: 18px; -fx-font-weight: bold;");
             errorMessage.setText("Reporte generado correctamente.");
 
-            // Abrir el archivo PDF automáticamente
             Runtime.getRuntime().exec("cmd /c start " + pdfFilePath);
 
         } catch (IOException e) {
+            errorMessage.setStyle("-fx-text-fill: red; -fx-font-size: 18px; -fx-font-weight: bold;");
             errorMessage.setText("Error al generar el reporte: " + e.getMessage());
         }
     }
 
-    private void createPdfReport(String pdfFilePath, String reportContent) {
+    private double obtenerGastosVentas() {
+        String text = gastosVentasField.getText();
+        if (text == null || text.isEmpty()) {
+            return 0.0;
+        }
+        try {
+            return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            errorMessage.setText("El campo gastos de ventas debe ser un número.");
+            return 0.0;
+        }
+    }
+
+    private void createPdfReport(String pdfFilePath, LocalDate startDate, LocalDate endDate, double totalSales, double gastosVentas, double totalProfit) {
         try (PdfWriter writer = new PdfWriter(pdfFilePath);
              PdfDocument pdf = new PdfDocument(writer);
              Document document = new Document(pdf)) {
 
-            // Agregar un título al documento
-            Paragraph title = new Paragraph("Reporte de Ventas")
-                    .setFontSize(20)
+            // LOGO centrado y pequeño arriba
+            try {
+                String logoPath = "C:/PROYECTO/images/logo.png";
+                ImageData imageData = ImageDataFactory.create(logoPath);
+                Image logo = new Image(imageData);
+                logo.scaleToFit(90, 90); // Un poco más grande que antes, pero aún pequeño
+                logo.setMarginBottom(10);
+                logo.setHorizontalAlignment(com.itextpdf.layout.property.HorizontalAlignment.CENTER);
+                document.add(logo);
+            } catch (Exception ex) {
+                System.out.println("No se pudo cargar el logo: " + ex.getMessage());
+            }
+
+            // Título centrado y grande
+            Paragraph title = new Paragraph("REPORTE DE VENTAS\n\n")
+                    .setFontSize(28)
                     .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
                     .setMarginBottom(20);
             document.add(title);
 
-            // Agregar contenido del reporte
-            Paragraph content = new Paragraph(reportContent)
-                    .setFontSize(12)
+            // Fechas centradas
+            Paragraph fechas = new Paragraph(
+                    "Fecha de Inicio: " + startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" +
+                            "Fecha de Fin: " + endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n"
+            )
+                    .setFontSize(16)
+                    .setTextAlignment(TextAlignment.CENTER)
                     .setMarginBottom(20);
-            document.add(content);
+            document.add(fechas);
 
-            // Mensaje de éxito
+            // Línea separadora
+            Paragraph linea = new Paragraph("————————————————————————————————————")
+                    .setFontSize(16)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(10);
+            document.add(linea);
+
+            // Datos principales, centrados y grandes (sin color)
+            Paragraph ventas = new Paragraph("Total Ventas: $" + String.format("%.2f", totalSales))
+                    .setFontSize(22)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setBold();
+            document.add(ventas);
+
+            Paragraph gastos = new Paragraph("Gastos de Ventas: $" + String.format("%.2f", gastosVentas))
+                    .setFontSize(22)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setBold();
+            document.add(gastos);
+
+            Paragraph ganancias = new Paragraph("Ganancias Netas: $" + String.format("%.2f", totalProfit))
+                    .setFontSize(24)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setBold();
+            document.add(ganancias);
+
+            // Línea separadora
+            document.add(linea);
+
+            // Pie de página
+            Paragraph footer = new Paragraph("\nADES Software")
+                    .setFontSize(16)
+                    .setTextAlignment(TextAlignment.CENTER);
+            document.add(footer);
+
             System.out.println("PDF creado en: " + pdfFilePath);
+
         } catch (Exception e) {
             e.printStackTrace();
             errorMessage.setText("Error al crear el archivo PDF: " + e.getMessage());
@@ -174,66 +245,10 @@ public class Cuadre extends Application {
         return totalSales;
     }
 
-    private double calculateProfit(double totalSales) {
+    private double calculateProfit(double totalSales, double gastosVentas) {
         double fixedCosts = 0; // Ejemplo de costos fijos
-        double variableCosts = totalSales * 0.0; // Ejemplo: 30% de las ventas son costos variables
-        return totalSales - (fixedCosts + variableCosts);
-    }
-
-    private String generateReportContent(LocalDate startDate, LocalDate endDate, double totalSales, double totalProfit) {
-        return "Reporte de ventas\n" +
-                "Fecha de Inicio: " + startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" +
-                "Fecha de Fin: " + endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "\n" +
-                "----------------------------------------\n" +
-                "Total Ventas : $" + totalSales + "\n" +
-                "Ganancias: $" + totalProfit + "\n" +
-                "----------------------------------------\n" +
-                "ADES Software";
-    }
-
-    private void showSalesGraph() {
-        Stage graphStage = new Stage();
-        graphStage.setTitle("Gráfica de Ventas");
-
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Día");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Ventas ($)");
-
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setTitle("Ventas por Día");
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Ventas");
-
-        Map<String, Double> salesData = getSalesData();
-        for (Map.Entry<String, Double> entry : salesData.entrySet()) {
-            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
-        }
-
-        barChart.getData().add(series);
-
-        Scene scene = new Scene(barChart, 800, 600);
-        graphStage.setScene(scene);
-        graphStage.show();
-    }
-
-    private Map<String, Double> getSalesData() {
-        Map<String, Double> salesData = new HashMap<>();
-        String query = "SELECT fecha_pedido, SUM(valor) AS total FROM pedidos WHERE estado = 'Cobrado' GROUP BY fecha_pedido";
-        try (Connection conn = conexionDB.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) {
-                String date = rs.getDate("fecha_pedido").toString();
-                double total = rs.getDouble("total");
-                salesData.put(date, total);
-            }
-        } catch (SQLException e) {
-            errorMessage.setText("Error al generar datos de la gráfica: " + e.getMessage());
-        }
-        return salesData;
+        double variableCosts = totalSales * 0.0; // Ejemplo: 0% de las ventas son costos variables
+        return totalSales - (fixedCosts + variableCosts + gastosVentas);
     }
 
     private void goBackToDespachos(Stage primaryStage) {

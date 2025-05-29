@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.*;
+import java.net.URLEncoder;
 import java.sql.*;
 import java.time.LocalDate;
 
@@ -25,12 +26,12 @@ public class Montarpedido extends Application {
     private Button btnCancelar;
     private TextField valorPedido;
     private TextField menuDiaField;
+    private TextField dineroRecibidoField;
     private ComboBox<String> comboDomiciliario;
     private ObservableList<String> listaDomiciliarios;
     private Button btnClientes;
     private Button btnDomiciliarios;
     private Button btnAgregarMenu;
-    private Button btnImprimir;
     private Label labelAyuda;
 
     public static void main(String[] args) {
@@ -63,13 +64,6 @@ public class Montarpedido extends Application {
 
         pagoInmediatoCheck = new CheckBox("Pago Inmediato");
         pagoInmediatoCheck.setStyle("-fx-font-size: 14px;");
-        pagoInmediatoCheck.setOnAction(e -> {
-            if (pagoInmediatoCheck.isSelected()) {
-                fechaCobro.setDisable(true);
-            } else {
-                fechaCobro.setDisable(false);
-            }
-        });
 
         valorPedido = new TextField();
         valorPedido.setPromptText("Ingrese el valor del pedido");
@@ -89,8 +83,43 @@ public class Montarpedido extends Application {
         btnCancelar = new Button("Cancelar");
         btnClientes = new Button("Ir a Clientes");
         btnDomiciliarios = new Button("Ir a Domiciliarios");
-        btnImprimir = new Button("Imprimir Pedido");
         btnAgregarMenu = new Button("Agregar Menú");
+
+        dineroRecibidoField = new TextField();
+        dineroRecibidoField.setPromptText("Dinero recibido");
+        dineroRecibidoField.setDisable(true);
+
+        telefonoCliente.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d{0,10}")) {
+                return change;
+            }
+            return null;
+        }));
+
+        valorPedido.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*(\\.\\d{0,2})?")) {
+                return change;
+            }
+            return null;
+        }));
+
+        dineroRecibidoField.setTextFormatter(new TextFormatter<>(change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*(\\.\\d{0,2})?")) {
+                return change;
+            }
+            return null;
+        }));
+
+        // Listener para pago inmediato
+        pagoInmediatoCheck.setOnAction(e -> {
+            boolean selected = pagoInmediatoCheck.isSelected();
+            fechaCobro.setDisable(selected);
+            dineroRecibidoField.setDisable(!selected);
+            if(!selected) dineroRecibidoField.clear();
+        });
     }
 
     private void cargarDomiciliarios() {
@@ -121,7 +150,7 @@ public class Montarpedido extends Application {
         root.add(crearCampo("Fecha del Pedido", fechaPedido), 0, 4);
         root.add(crearCampo("Fecha de Cobro", fechaCobro), 0, 5);
         root.add(crearCampo("Pago Inmediato", pagoInmediatoCheck), 0, 6);
-
+        root.add(crearCampo("Dinero recibido", dineroRecibidoField), 1, 5);
         root.add(crearCampo("Apellido", apellidoCliente), 1, 1);
         root.add(crearCampo("Dirección", direccionCliente), 1, 2);
         root.add(crearCampo("Domiciliario", comboDomiciliario), 1, 3);
@@ -129,13 +158,12 @@ public class Montarpedido extends Application {
 
         HBox botones = new HBox(30);
         botones.setAlignment(Pos.CENTER);
-        botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios, btnImprimir);
+        botones.getChildren().addAll(btnCrearPedido, btnCancelar, btnClientes, btnDomiciliarios );
         root.add(botones, 0, 9, 2, 1);
 
         labelAyuda = new Label("AYUDA ADES: Si el cliente/domiciliario es nuevo, créelo posteriormente. Solo debe ingresar el teléfono y dar Enter para continuar.");
         labelAyuda.setStyle("-fx-font-size: 12px; -fx-text-fill: #333; -fx-font-weight: normal; -fx-alignment: center;");
 
-        // Añadir el mensaje de ayuda al pie de la ventana
         HBox ayudaBox = new HBox(labelAyuda);
         ayudaBox.setAlignment(Pos.CENTER);
         ayudaBox.setStyle("-fx-padding: 10px;");
@@ -170,8 +198,6 @@ public class Montarpedido extends Application {
         btnClientes.setPrefWidth(250);
         btnDomiciliarios.setStyle(botonEstilo);
         btnDomiciliarios.setPrefWidth(250);
-        btnImprimir.setStyle(botonEstilo);
-        btnImprimir.setPrefWidth(250);
     }
 
     private void cargarDatosPorTelefono(String telefono) {
@@ -186,7 +212,7 @@ public class Montarpedido extends Application {
                 apellidoCliente.setText(rs.getString("apellido"));
                 direccionCliente.setText(rs.getString("direccion"));
             } else {
-                mostrarAlerta(Alert.AlertType.ERROR, "No se encontró un cliente con ese número de teléfono.");
+                mostrarAlerta(Alert.AlertType.ERROR, "No se encontró un cliente con ese número de teléfono, Crearlo primero por el atajo clientes.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -200,12 +226,10 @@ public class Montarpedido extends Application {
             }
         });
 
-
         btnCrearPedido.setOnAction(event -> crearPedido());
         btnCancelar.setOnAction(event -> cancelarPedido(primaryStage));
         btnClientes.setOnAction(event -> irAClientes());
         btnDomiciliarios.setOnAction(event -> irADomiciliarios());
-        btnImprimir.setOnAction(event -> imprimirPedido());
     }
 
     private void crearPedido() {
@@ -219,6 +243,25 @@ public class Montarpedido extends Application {
 
             float valor = obtenerValorPedido();
             if (valor == -1) return;
+
+            // Validación pago inmediato
+            if (pagoInmediatoCheck.isSelected()) {
+                float dineroRecibido;
+                try {
+                    dineroRecibido = Float.parseFloat(dineroRecibidoField.getText());
+                } catch (NumberFormatException ex) {
+                    mostrarAlerta(Alert.AlertType.ERROR, "Debe ingresar un valor válido en Dinero recibido.");
+                    return;
+                }
+                if (dineroRecibido < valor) {
+                    mostrarAlerta(Alert.AlertType.ERROR, "El dinero recibido es menor al valor del pedido.");
+                    return;
+                }
+                if (dineroRecibido > valor) {
+                    float vueltas = dineroRecibido - valor;
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Pedido Cobrado: Debe dar vueltas al cliente por: $" + String.format("%.2f", vueltas));
+                }
+            }
 
             int idCliente = obtenerIdPorTelefono(telefono, connection);
             if (idCliente == -1) {
@@ -250,9 +293,65 @@ public class Montarpedido extends Application {
             stmt.executeUpdate();
             mostrarAlerta(Alert.AlertType.INFORMATION, "Pedido creado exitosamente");
 
+            // --- Envío WhatsApp al domiciliario ---
+            String nombreDomiciliario = comboDomiciliario.getValue();
+            String telefonoDomiciliario = obtenerTelefonoDomiciliario(nombreDomiciliario, connection);
+
+            // Se asume todos los números son de Colombia y se les antepone el indicativo si hace falta
+            if (telefonoDomiciliario != null && !telefonoDomiciliario.isEmpty()) {
+                String telColombia = normalizarTelefonoColombia(telefonoDomiciliario);
+                String mensaje = "Nuevo pedido:\nCliente: " + nombre + " " + apellido +
+                        "\nTel: " + telefono +
+                        "\nDirección: " + direccion +
+                        "\nMenú: " + menuDiaField.getText() +
+                        "\nValor: $" + valorPedido.getText() +
+                        "\nFecha: " + fechaPedido.getValue() +
+                        "\nPago: " + (pagoInmediatoCheck.isSelected() ? "Inmediato" : "Contra entrega o por cobrar");
+                enviarWhatsappADomiciliario(telColombia, mensaje);
+            } else {
+                mostrarAlerta(Alert.AlertType.WARNING, "El domiciliario no tiene número de WhatsApp registrado.");
+            }
+            // --- Fin WhatsApp ---
+
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarAlerta(Alert.AlertType.ERROR, "Error al crear el pedido: " + e.getMessage());
+        }
+    }
+
+    // Si el número no empieza por +57, se lo antepone automáticamente
+    private String normalizarTelefonoColombia(String numero) {
+        String tel = numero.replaceAll("\\D", ""); // quita todo menos dígitos
+        if (tel.length() == 10) { // celular colombiano común
+            return "57" + tel;
+        } else if (tel.startsWith("57") && tel.length() == 12) { // ya tiene indicativo sin +
+            return tel;
+        } else if (tel.startsWith("57") && tel.length() == 11) { // casos raros
+            return tel;
+        } else if (tel.startsWith("+57")) {
+            return tel.replace("+", "");
+        }
+        return tel;
+    }
+
+    private String obtenerTelefonoDomiciliario(String nombreDomiciliario, Connection connection) throws SQLException {
+        String query = "SELECT telefono FROM DOMICILIARIOS WHERE nombre = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, nombreDomiciliario);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("telefono");
+            }
+        }
+        return null;
+    }
+
+    private void enviarWhatsappADomiciliario(String telefonoDomiciliario, String mensaje) {
+        try {
+            String url = "https://wa.me/" + telefonoDomiciliario + "?text=" + URLEncoder.encode(mensaje, "UTF-8");
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+        } catch (Exception e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "No se pudo abrir WhatsApp: " + e.getMessage());
         }
     }
 
@@ -347,17 +446,6 @@ public class Montarpedido extends Application {
         } catch (Exception e) {
             e.printStackTrace();
             mostrarAlerta(Alert.AlertType.ERROR, "Error al abrir la ventana de domiciliarios: " + e.getMessage());
-        }
-    }
-
-    private void imprimirPedido() {
-        try {
-            Imprimir imprimirApp = new Imprimir();
-            Stage nuevaVentana = new Stage();
-            imprimirApp.start(nuevaVentana);
-        } catch (Exception e) {
-            e.printStackTrace();
-            mostrarAlerta(Alert.AlertType.ERROR, "Error al abrir la ventana de impresión: " + e.getMessage());
         }
     }
 

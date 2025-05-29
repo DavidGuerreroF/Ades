@@ -23,6 +23,9 @@ import java.sql.SQLException;
 
 public class CrearProducto extends Application {
 
+    // Nueva variable constante para la cantidad inicial
+    private static final int CANTIDAD_INICIAL = 0;
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Crear Producto");
@@ -51,7 +54,9 @@ public class CrearProducto extends Application {
 
         Label cantidadLabel = new Label("Cantidad Disponible:");
         GridPane.setConstraints(cantidadLabel, 0, 3);
-        TextField cantidadInput = new TextField();
+        TextField cantidadInput = new TextField(String.valueOf(CANTIDAD_INICIAL));
+        cantidadInput.setEditable(false);
+        cantidadInput.setStyle("-fx-background-color: #e0e0e0;"); // gris para indicar solo lectura
         GridPane.setConstraints(cantidadInput, 1, 3);
 
         Label observacionesLabel = new Label("Observaciones:");
@@ -71,7 +76,7 @@ public class CrearProducto extends Application {
                 int codigo = Integer.parseInt(codigoInput.getText());
                 String descripcion = descripcionInput.getText();
                 double costo = Double.parseDouble(costoInput.getText());
-                int cantidad = Integer.parseInt(cantidadInput.getText());
+                int cantidad = CANTIDAD_INICIAL; // Siempre cero, no editable por el usuario
                 String observaciones = observacionesInput.getText();
 
                 if (codigoExiste(codigo)) {
@@ -104,7 +109,14 @@ public class CrearProducto extends Application {
         GridPane.setConstraints(buttonBox, 1, 5);
 
         // Agregar todos los elementos al GridPane
-        grid.getChildren().addAll(codigoLabel, codigoInput, descripcionLabel, descripcionInput, costoLabel, costoInput, cantidadLabel, cantidadInput, observacionesLabel, observacionesInput, buttonBox);
+        grid.getChildren().addAll(
+                codigoLabel, codigoInput,
+                descripcionLabel, descripcionInput,
+                costoLabel, costoInput,
+                cantidadLabel, cantidadInput,
+                observacionesLabel, observacionesInput,
+                buttonBox
+        );
 
         // Crear la escena y mostrarla
         Scene scene = new Scene(grid, 600, 400);
@@ -138,7 +150,7 @@ public class CrearProducto extends Application {
             pstmt.setInt(1, codigo);
             pstmt.setString(2, descripcion);
             pstmt.setDouble(3, costo);
-            pstmt.setInt(4, cantidad);
+            pstmt.setInt(4, cantidad); // Siempre cero
             pstmt.setString(5, observaciones);
 
             pstmt.executeUpdate();

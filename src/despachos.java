@@ -150,11 +150,11 @@ public class despachos extends Application {
         );
 
         despachosLayout.getChildren().addAll(
-                btnFacturar,
+                btnGestionClientes,
+                btnDomiciliarios,
                 btnMontarpedido,
                 btnSeguimientoPedidos,
-                btnDomiciliarios,
-                btnGestionClientes,
+                btnFacturar,
                 btnGeneracionInformes,
                 btnMenu
         );

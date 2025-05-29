@@ -160,16 +160,11 @@ public class Entrada extends Application {
             costoInput.setPromptText("Ingrese el costo");
             GridPane.setConstraints(costoInput, 1, row + 2);
 
-            Label observacionesLabel = new Label("Observaciones:");
-            GridPane.setConstraints(observacionesLabel, 0, row + 3);
-            TextField observacionesInput = new TextField();
-            observacionesInput.setPromptText("Ingrese observaciones");
-            GridPane.setConstraints(observacionesInput, 1, row + 3);
+            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, costoLabel, costoInput);
 
-            grid.getChildren().addAll(productoLabel, cantidadLabel, cantidadInput, costoLabel, costoInput, observacionesLabel, observacionesInput);
-
-            productoFieldsMap.put(producto, new TextField[]{cantidadInput, costoInput, observacionesInput});
-            row += 4; // Move to the next set of rows for the next product
+            // Solo dos campos: cantidad y costo
+            productoFieldsMap.put(producto, new TextField[]{cantidadInput, costoInput});
+            row += 3; // Move to the next set of rows for the next product
         }
 
         Button btnGuardar = new Button("Guardar");
@@ -188,9 +183,8 @@ public class Entrada extends Application {
 
                     int cantidad = Integer.parseInt(fields[0].getText());
                     float costo = Float.parseFloat(fields[1].getText());
-                    String observaciones = fields[2].getText();
 
-                    registrarEntrada(producto, cantidad, costo, observaciones);
+                    registrarEntrada(producto, cantidad, costo);
                 }
 
                 actualizarListView(listView);
@@ -206,18 +200,17 @@ public class Entrada extends Application {
         stage.show();
     }
 
-    private void registrarEntrada(Producto producto, int cantidad, float costo, String observaciones) {
-        String sqlEntrada = "INSERT INTO EntradasInventario (codigo_producto, cantidad, observaciones) VALUES (?, ?, ?)";
+    private void registrarEntrada(Producto producto, int cantidad, float costo) {
+        String sqlEntrada = "INSERT INTO EntradasInventario (codigo_producto, cantidad) VALUES (?, ?)";
         String sqlActualizarCosto = "UPDATE Productos SET costo = ? WHERE codigo = ?";
 
         try (Connection conn = conexionDB.getConnection();
              PreparedStatement pstmtEntrada = conn.prepareStatement(sqlEntrada);
              PreparedStatement pstmtActualizarCosto = conn.prepareStatement(sqlActualizarCosto)) {
 
-            // Insertar entrada en la tabla EntradasInventario
+            // Insertar entrada en la tabla EntradasInventario (sin observaciones)
             pstmtEntrada.setInt(1, producto.codigo);
             pstmtEntrada.setInt(2, cantidad);
-            pstmtEntrada.setString(3, observaciones);
             pstmtEntrada.executeUpdate();
 
             // Actualizar el costo en la tabla Productos
