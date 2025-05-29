@@ -1,8 +1,0 @@
-ID: 6, Código: 1, Descripción: arroz, Costo: 150000.0, Cantidad: 4, Observaciones: arroba de arroz paar el dia 
-ID: 7, Código: 2, Descripción: carne, Costo: 20000.0, Cantidad: 2, Observaciones: una libra de carne fresca 
-ID: 8, Código: 3, Descripción: platano, Costo: 40000.0, Cantidad: 0, Observaciones: se compro una bolsa de platano
-ID: 9, Código: 303030, Descripción: LENTEJA LIBRA, Costo: 3500.0, Cantidad: 0, Observaciones: 
-ID: 10, Código: 202020, Descripción: pasta, Costo: 6000.0, Cantidad: 2, Observaciones: pasta para la semana 
-ID: 11, Código: 404040, Descripción: leche, Costo: 4000.0, Cantidad: 8, Observaciones: bolsas de leche
-ID: 12, Código: 505050, Descripción: frijoles, Costo: 5000.0, Cantidad: 2, Observaciones: frijoles
-ID: 13, Código: 123456789, Descripción: LIBRA DE LENTEJAS, Costo: 8000.0, Cantidad: 40, Observaciones: LLEGARON 20 LIBRAS
